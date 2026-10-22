@@ -33,12 +33,16 @@
     const pct = (V.dahArea / V.baseArea) * 100;
     const goal = S.threshold * 100;
     const leftArea = Math.max(0, V.baseArea * S.threshold - V.dahArea);
+    const leftApts = Math.ceil(leftArea / S.avgArea); // середня площа ще не зареєстрованих квартир
 
     $("#updated").textContent = new Date(V.updatedAt).toLocaleString("uk-UA", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
     $("#c-total").textContent = num(total);
     $("#c-left").innerHTML = pct > goal
       ? "<b>Більшість є!</b> Готуємо реєстрацію ОСББ"
-      : `До мети ще <b>${num(Math.ceil(leftArea))} м²</b> · це ≈ ${num(Math.ceil(leftArea / 64))} квартир`;
+      : `До мети ще <b>${num(Math.ceil(leftArea))} м²</b> · це ≈ ${num(leftApts)} квартир`;
+    document.querySelectorAll(".js-pct").forEach((el) => (el.textContent = pctStr(pct)));
+    document.querySelectorAll(".js-left-m2").forEach((el) => (el.textContent = num(Math.ceil(leftArea / 10) * 10) + " м²"));
+    document.querySelectorAll(".js-left-apts").forEach((el) => (el.textContent = "≈" + num(leftApts)));
     $("#bar-goal").style.left = goal + "%";
     $("#bar").setAttribute("aria-valuenow", pct.toFixed(1));
 
@@ -182,10 +186,6 @@
       <div class="ico"><svg viewBox="0 0 48 48" aria-hidden="true">${ICON[w.icon] || ""}</svg></div>
       <h3>${esc(w.title)}</h3><p>${esc(w.text)}</p></article>`).join("");
 
-  // ---------- Порівняння ----------
-  $("#compare").innerHTML = `<div class="compare__row compare__head"><span></span><span>Керуюча компанія</span><span>ОСББ</span></div>` +
-    S.compare.map(([k, a, b]) => `<div class="compare__row"><span>${esc(k)}</span><span class="bad">${esc(a)}</span><span class="good">${esc(b)}</span></div>`).join("");
-
   // ---------- Етапи ----------
   $("#steps-list").innerHTML = S.steps.map((s, i) => {
     const st = i < S.current ? "done" : i === S.current ? "now" : "";
@@ -206,8 +206,9 @@
       <div class="tl__seg tl__ok" style="left:${L(N.quietTo)}%;width:${L(N.to) - L(N.quietTo)}%">можна</div>
     </div><div class="tl__marks">${[N.from, N.quietFrom, N.quietTo, N.to].map((h) => `<span style="left:${L(h)}%">${hh(h)}</span>`).join("")}</div>`;
   $("#noaccept").innerHTML = S.notAccepted.map((n) => `<div class="na"><span class="na__x">×</span><span class="na__ico">${n.icon}</span>${esc(n.label)}</div>`).join("");
-  $("#contacts").innerHTML = S.contacts.map((c) => `<a class="contact contact--${c.color}" href="tel:${c.phone.replace(/[^\d+]/g, "")}">
-      <span>${esc(c.label)}</span><b>${esc(c.phone)}</b>${c.note ? `<small>${esc(c.note)}</small>` : ""}</a>`).join("");
+  const botCard = `<div class="team__sec team__bot card"><h3>Бот ініціативної групи</h3><p>Допомога з реєстрацією, новини, питання.</p><a class="btn btn--tg btn--sm" href="${esc(S.botUrl)}" target="_blank" rel="noopener">${esc(S.botName)}</a></div>`;
+  $("#team-list").innerHTML = S.team.map((t) => `<div class="team__sec card"><h3>${esc(t.section)}</h3>` +
+    t.people.map((p) => `<div class="person"><span>${esc(p.name)}</span><a href="${esc(p.tg)}" target="_blank" rel="noopener">Telegram ↗</a></div>`).join("") + "</div>").join("") + botCard;
 
   // ---------- Поділитися ----------
   $("#share").onclick = async (e) => {
