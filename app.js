@@ -196,16 +196,7 @@
   // ---------- FAQ ----------
   $("#faq-list").innerHTML = S.faq.map((f) => `<details class="faq"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("");
 
-  // ---------- Правила ----------
-  const N = S.noise, hh = (h) => String(h).padStart(2, "0") + ":00";
-  $("#days").innerHTML = N.days.map(([d, ok]) => `<div class="day ${ok ? "" : "day--no"}"><b>${d}</b><span>${ok ? `${hh(N.from).slice(0, 2)}–${hh(N.to).slice(0, 2)}` : "заборонено"}</span></div>`).join("");
-  const L = (h) => ((h - 7) / 13) * 100; // шкала 07:00–20:00
-  $("#timeline").innerHTML = `<div class="tl">
-      <div class="tl__seg tl__ok" style="left:${L(N.from)}%;width:${L(N.quietFrom) - L(N.from)}%">можна</div>
-      <div class="tl__seg tl__quiet" style="left:${L(N.quietFrom)}%;width:${L(N.quietTo) - L(N.quietFrom)}%">тиша</div>
-      <div class="tl__seg tl__ok" style="left:${L(N.quietTo)}%;width:${L(N.to) - L(N.quietTo)}%">можна</div>
-    </div><div class="tl__marks">${[N.from, N.quietFrom, N.quietTo, N.to].map((h) => `<span style="left:${L(h)}%">${hh(h)}</span>`).join("")}</div>`;
-  $("#noaccept").innerHTML = S.notAccepted.map((n) => `<div class="na"><span class="na__x">×</span><span class="na__ico">${n.icon}</span>${esc(n.label)}</div>`).join("");
+  // ---------- Ініціативна група ----------
   const botCard = `<div class="team__sec team__bot card"><h3>Бот ініціативної групи</h3><p>Допомога з реєстрацією, новини, питання.</p><a class="btn btn--tg btn--sm" href="${esc(S.botUrl)}" target="_blank" rel="noopener">${esc(S.botName)}</a></div>`;
   $("#team-list").innerHTML = S.team.map((t) => `<div class="team__sec card"><h3>${esc(t.section)}</h3>` +
     t.people.map((p) => `<div class="person"><span>${esc(p.name)}</span><a href="${esc(p.tg)}" target="_blank" rel="noopener">Telegram ↗</a></div>`).join("") + "</div>").join("") + botCard;
