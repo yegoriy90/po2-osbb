@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Паркові Озера 2 — створюємо ОСББ</title>
+  <meta name="description" content="ЖК «Паркові Озера 2»: створюємо ОСББ. Проголосуй у ДАХ і запали своє вікно.">
+  <meta property="og:title" content="Створюємо ОСББ. Потрібен твій голос">
+  <meta property="og:description" content="ЖК «Паркові Озера 2», вул. Воскресенська, 2В. Кожна квартира, що проголосувала, запалює своє вікно.">
+  <meta name="theme-color" content="#3d7a22">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%235a9a2c'/%3E%3Cpath d='M16 6c5 4 5 10 0 14-5-4-5-10 0-14z' fill='%23fff'/%3E%3Cpath d='M8 23c3-2 5 2 8 0s5 2 8 0' stroke='%23fff' stroke-width='2' fill='none'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="lg-logo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7cbf3a"/><stop offset="1" stop-color="#3d7a22"/></linearGradient>
+      <symbol id="logo" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="30" fill="url(#lg-logo)"/>
+        <path d="M32 11c8 6 8 16 0 22-8-6-8-16 0-22z" fill="#fff"/>
+        <path d="M32 17v16" stroke="#5a9a2c" stroke-width="1.6"/>
+        <path d="M15 40c4-3 7 3 11 0s7 3 11 0 7 3 11 0M15 46c4-3 7 3 11 0s7 3 11 0 7 3 11 0" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <header class="topbar">
+    <div class="wrap topbar__in">
+      <a class="brand" href="#">
+        <span class="brand__logo"><svg><use href="#logo"/></svg><i>2</i></span>
+        <span><b data-bind="complex"></b><small data-bind="address"></small></span>
+      </a>
+      <a class="pill pill--orange" href="#vote">✓ Зареєструватися</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap hero__in">
+        <p class="eyebrow">Звернення до власників квартир</p>
+        <h1>Створюємо ОСББ. <span>Потрібен <mark>твій голос</mark></span></h1>
+        <p class="lead">Платити за те, чого немає, і мовчати — більше не варіант. За законом рішення ухвалюють власники, тож усе залежить від нас.</p>
+
+        <div class="counter card">
+          <div class="counter__top">
+            <div><span class="counter__big" id="c-pct">0%</span><small>площі будинку вже в ДАХ</small></div>
+            <div class="counter__side"><b id="c-voted">0</b> з <span id="c-total"></span> квартир<br>зареєструвались</div>
+          </div>
+          <div class="bar" role="progressbar" aria-label="Прогрес голосів" id="bar">
+            <div class="bar__fill" id="bar-fill"></div>
+            <div class="bar__goal" id="bar-goal"><span>50% + 1</span></div>
+          </div>
+          <div class="counter__meta"><span id="c-left"></span><span>За реєстром на <time id="updated"></time></span></div>
+        </div>
+
+        <div class="cta">
+          <a class="btn btn--green" data-href="dahUrl" target="_blank" rel="noopener">Зареєструватися в ДАХ</a>
+          <a class="btn btn--tg" data-href="botUrl" target="_blank" rel="noopener">Чат власників</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="night-wrap">
+      <div class="wrap">
+        <div class="night">
+          <div class="night__head">
+            <p class="eyebrow eyebrow--light">Кожне вікно — голос власника</p>
+            <h2>Запали своє вікно</h2>
+            <p>Власник зареєструвався в ДАХ, і вікно його квартири загоряється. Наведіть або тапніть на вікно, щоб побачити номер.</p>
+          </div>
+          <div class="town">
+            <div class="forest" aria-hidden="true"></div>
+            <div class="town__scroll" id="town"></div>
+            <div class="lake" aria-hidden="true"></div>
+          </div>
+          <div class="legend">
+            <span><i class="lg lg--on"></i>Власник уже в ДАХ</span>
+            <span><i class="lg"></i>Чекаємо на реєстрацію</span>
+          </div>
+        </div>
+      </div>
+      <div class="tip" id="tip" role="status"></div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="card card--pain">
+          <h3 class="pain__title">⚠️ Що нас не влаштовує вже зараз</h3>
+          <ul class="pain" id="pains"></ul>
+        </div>
+
+        <div class="banner">
+          <div class="banner__ico">📊</div>
+          <div>
+            <h3>Нам потрібно понад 50% голосів власників</h3>
+            <p>Саме стільки вимагає закон, щоб зареєструвати ОСББ. Голос рахується за площею квартири. <b>Що швидше зберемо більшість, то швидше самі керуватимемо будинком.</b></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="vote">
+      <div class="wrap">
+        <h2 class="center">Власнику: зареєструйся зараз, це 2 хвилини</h2>
+        <div class="stepcards">
+          <article class="stepcard stepcard--green">
+            <span class="stepcard__tag">Крок 1 · Голосування</span>
+            <h3><span class="dah-mark" aria-hidden="true"></span>ДАХ</h3>
+            <a class="qr" data-href="dahUrl" target="_blank" rel="noopener"><img src="img/qr-dah.svg" alt="QR-код застосунку ДАХ" width="180" height="180"></a>
+            <p>Скануй → обери «<b data-bind="dahBuilding"></b>».<br><span class="accent-green">Тут рахуються голоси власників.</span></p>
+            <a class="btn btn--green btn--sm" data-href="dahUrl" target="_blank" rel="noopener">Відкрити ДАХ</a>
+          </article>
+          <article class="stepcard stepcard--blue">
+            <span class="stepcard__tag">Крок 2 · Чат власників</span>
+            <h3><span class="tg-mark" aria-hidden="true"></span>Telegram</h3>
+            <a class="qr" data-href="botUrl" target="_blank" rel="noopener"><img src="img/qr-tg.svg" alt="QR-код Telegram-бота" width="180" height="180"></a>
+            <p>Скануй → <b class="accent-blue">/start</b> → підтверди квартиру.<br>Новини та обговорення.</p>
+            <a class="btn btn--tg btn--sm" data-href="botUrl" target="_blank" rel="noopener" data-bind="botName"></a>
+          </article>
+        </div>
+        <div class="dashed">
+          <h3>50% + 1 голос = наше ОСББ</h3>
+          <p>Кожна незареєстрована квартира віддаляє нас від мети. Якщо ви власник, зробіть це сьогодні й перекажіть сусідам.</p>
+          <button class="btn btn--outline btn--sm" id="share">Переслати сусідам</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <p class="eyebrow">Навіщо це нам</p>
+        <h2>Що зміниться з ОСББ</h2>
+        <div class="why" id="why-list"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <h2>Керуюча компанія чи ОСББ</h2>
+        <div class="compare card" id="compare"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <p class="eyebrow">Дорожня карта</p>
+        <h2>Як ми це зробимо</h2>
+        <ol class="steps" id="steps-list"></ol>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <h2>Часті питання</h2>
+        <div class="card faq-wrap" id="faq-list"></div>
+      </div>
+    </section>
+
+    <section class="section" id="rules">
+      <div class="wrap">
+        <p class="eyebrow">Для всіх мешканців</p>
+        <h2>Правила будинку</h2>
+        <div class="card">
+          <h3 class="card__title"><span class="chip">🔨</span>Коли можна шумні роботи</h3>
+          <div class="days" id="days"></div>
+          <div class="timeline" id="timeline"></div>
+          <p class="rules-text"><b>Понеділок–п'ятниця:</b> з 09:00 до 18:00<br><b>Тиха година</b> з 13:00 до 15:00, шумні роботи заборонено<br><b>Субота, неділя та святкові дні:</b> <span class="red">шумні роботи заборонено</span></p>
+        </div>
+        <div class="card">
+          <h3 class="card__title"><span class="chip chip--red">🛡️</span>Охорона не приймає на зберігання</h3>
+          <div class="noaccept" id="noaccept"></div>
+        </div>
+        <div class="contacts" id="contacts"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer__in">
+      <span>ЖК «<span data-bind="complex"></span>» · <span data-bind="address"></span></span>
+      <span>Ініціативна група · <a data-href="botUrl" target="_blank" rel="noopener" data-bind="botName"></a></span>
+    </div>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="votes.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
