@@ -10,26 +10,11 @@
   document.querySelectorAll("[data-href]").forEach((el) => (el.href = S[el.dataset.href]));
 
   // ---------- Голоси ----------
-  // votes: { updatedAt, baseArea, dahArea, apartments: [[номер, 0|1], ...] }
-  const parseCsv = (text) => {
-    const rows = text.trim().split(/\r?\n/).slice(1).map((l) => l.split(","));
-    const yes = (v) => /✅|^1$|так|true/i.test((v || "").trim());
-    const nums = (v) => parseFloat(String(v || "").replace(",", "."));
-    const known = rows.map((r) => nums(r[1])).filter((x) => x > 0).sort((x, y) => x - y);
-    const fill = known[known.length >> 1] || 0;
-    let dahArea = 0;
-    const apartments = rows.filter((r) => parseInt(r[0])).map((r) => {
-      const on = yes(r[2]);
-      if (on) dahArea += nums(r[1]) || fill;
-      return [parseInt(r[0]), on ? 1 : 0];
-    });
-    return { updatedAt: new Date().toISOString(), baseArea: window.VOTES.baseArea, dahArea, apartments };
-  };
-
+  // votes: { updatedAt, baseArea, dahArea, sections: [{ total, inDah }, ...] }
+  // Лише суми по секціях: які саме квартири в ДАХ, сайт не знає і не показує.
   const render = (V) => {
-    const dah = new Map(V.apartments);
-    const total = V.apartments.length;
-    const inDah = V.apartments.filter((a) => a[1]).length;
+    const total = V.sections.reduce((n, x) => n + x.total, 0);
+    const inDah = V.sections.reduce((n, x) => n + x.inDah, 0);
     const pct = (V.dahArea / V.baseArea) * 100;
     const goal = S.threshold * 100;
     const leftArea = Math.max(0, V.baseArea * S.threshold - V.dahArea);
@@ -61,7 +46,7 @@
     setTimeout(countUp, 250);
 
     // ---------- Будинок ----------
-    // "2:3, 3-19:10" → { 2: [1, 2, 3], 3: [4..13], ... }
+    // "2:3, 3-19:10" → { 2: [1, 2, 3], 3: [4..13], ... } (номери лише для підрахунку вікон)
     const parseLayout = (sec) => {
       const floors = {};
       let n = sec.first;
@@ -88,28 +73,29 @@
       const per = Math.max(...Object.values(floors).map((f) => f.length));
       const bw = PAD * 2 + per * W + (per - 1) * GX;
       const bh = ROOF + PAD + rows * H + (rows - 1) * GY + PAD + GROUND;
-      let win = "", lit = "", on = 0, known = 0;
+      // Світлі вікна розставляємо випадково: видно скільки, але не які саме квартири.
+      const slots = Object.values(floors).reduce((n, f) => n + f.length, 0);
+      const on = Math.min(V.sections[si].inDah, slots);
+      const order = [...Array(slots).keys()].sort(() => Math.random() - 0.5);
+      const isLit = new Set(order.slice(0, on));
+      let win = "", lit = "", k = 0;
       for (let f = 2; f <= top; f++) {
         const list = floors[f] || [];
         const y = ROOF + PAD + (top - f) * (H + GY);
         const off = ((per - list.length) * (W + GX)) / 2;
-        list.forEach((apt, c) => {
+        list.forEach((_, c) => {
           const x = PAD + off + c * (W + GX);
-          const st = dah.get(apt);
-          if (st === undefined) { win += `<rect class="w w--none" data-apt="${apt}" data-na="1" x="${x}" y="${y}" width="${W}" height="${H}" rx="2"/>`; return; }
-          known++;
-          if (st) {
-            on++;
-            lit += `<g class="w w--on" data-apt="${apt}" data-floor="${f}" style="animation-delay:${(Math.random() * 1.8).toFixed(2)}s"><rect x="${x}" y="${y}" width="${W}" height="${H}" rx="2"/><path d="M${x + W / 2} ${y + 2}V${y + H - 2}"/></g>`;
+          if (isLit.has(k++)) {
+            lit += `<g class="w w--on" style="animation-delay:${(Math.random() * 1.8).toFixed(2)}s"><rect x="${x}" y="${y}" width="${W}" height="${H}" rx="2"/><path d="M${x + W / 2} ${y + 2}V${y + H - 2}"/></g>`;
           } else {
-            win += `<rect class="w" data-apt="${apt}" data-floor="${f}" x="${x}" y="${y}" width="${W}" height="${H}" rx="2"/>`;
+            win += `<rect class="w" x="${x}" y="${y}" width="${W}" height="${H}" rx="2"/>`;
           }
         });
       }
       const gy = bh - GROUND, door = bw / 2 - 14, roofBox = si % 2 ? bw - 70 : 30;
       return `<figure class="bld">
         <figcaption>${esc(s.name)}</figcaption>
-        <svg viewBox="0 0 ${bw} ${bh}" width="${bw}" height="${bh}" role="img" aria-label="${esc(s.name)}: ${on} з ${known} квартир у ДАХ">
+        <svg viewBox="0 0 ${bw} ${bh}" width="${bw}" height="${bh}" role="img" aria-label="${esc(s.name)}: ${V.sections[si].inDah} з ${V.sections[si].total} квартир у ДАХ">
           <rect class="roofbox" x="${roofBox}" y="2" width="40" height="${ROOF - 2}" rx="2"/>
           <rect class="vent" x="${roofBox + 8}" y="9" width="10" height="10" rx="1"/>
           <rect class="body" x="0" y="${ROOF}" width="${bw}" height="${bh - ROOF}" rx="3"/>
@@ -121,7 +107,7 @@
           <rect class="door" x="${door}" y="${gy + 12}" width="28" height="${GROUND - 12}" rx="2"/>
           <rect class="lamp" x="${door + 9}" y="${gy + 5}" width="10" height="4" rx="2"/>
         </svg>
-        <div class="bld__meta"><span>${on} / ${known} квартир</span><b>${Math.round((on / known) * 100)}%</b></div>
+        <div class="bld__meta"><span>${V.sections[si].inDah} / ${V.sections[si].total} квартир</span><b>${Math.round((V.sections[si].inDah / V.sections[si].total) * 100)}%</b></div>
       </figure>`;
     }).join("");
     town.classList.remove("go");
@@ -132,28 +118,6 @@
   const town = $("#town");
   let shareText = "";
   render(window.VOTES);
-  if (S.sheetCsvUrl) {
-    fetch(S.sheetCsvUrl).then((r) => r.ok ? r.text() : Promise.reject()).then((t) => render(parseCsv(t))).catch(() => {});
-  }
-
-  const tip = $("#tip");
-  let hideT;
-  const show = (e) => {
-    const w = e.target.closest("[data-apt]");
-    if (!w) return;
-    const yes = w.classList.contains("w--on");
-    tip.innerHTML = `кв. ${w.dataset.apt}${w.dataset.floor ? `, ${w.dataset.floor} пов.` : ""} · ${w.dataset.na ? "немає в реєстрі" : yes ? "<b>уже в ДАХ ✓</b>" : "ще не в ДАХ"}`;
-    const r = w.getBoundingClientRect();
-    tip.style.left = r.left + r.width / 2 + "px";
-    tip.style.top = r.top + "px";
-    tip.classList.add("tip--on");
-    clearTimeout(hideT);
-    hideT = setTimeout(() => tip.classList.remove("tip--on"), 2200);
-  };
-  town.addEventListener("pointerover", show);
-  town.addEventListener("click", show);
-  town.addEventListener("scroll", () => tip.classList.remove("tip--on"), { passive: true });
-  addEventListener("scroll", () => tip.classList.remove("tip--on"), { passive: true });
 
   // Парк позаду і озеро попереду
   let seed = 7;

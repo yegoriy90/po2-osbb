@@ -47,10 +47,11 @@
   const S = window.SITE, V = window.VOTES;
   const num = (n) => n.toLocaleString("uk-UA");
   const pct = (V.dahArea / V.baseArea) * 100;
-  const inDah = V.apartments.filter((a) => a[1]).length;
+  const inDah = V.sections.reduce((n, x) => n + x.inDah, 0);
+  const total = V.sections.reduce((n, x) => n + x.total, 0);
   document.getElementById("eyebrow").textContent = `ЖК «${S.complex}» · Воскресенська, 2В`;
   document.getElementById("pct").textContent = pct.toFixed(1).replace(".", ",") + "%";
-  document.getElementById("sub").innerHTML = `площі вже в ДАХ<br>${num(inDah)} квартир із ${num(V.apartments.length)}`;
+  document.getElementById("sub").innerHTML = `площі вже в ДАХ<br>${num(inDah)} квартир із ${num(total)}`;
   document.getElementById("fill").style.width = Math.min(100, pct) + "%";
 
   // Та сама розкладка, що й у app.js: "2:3, 3-19:10" → { 2: [1, 2, 3], ... }
@@ -71,7 +72,6 @@
     return floors;
   };
 
-  const dah = new Map(V.apartments);
   const W = 7, H = 10, GX = 2.5, GY = 5, PAD = 7, GAP = 10, GROUND = 22, TOP = 28;
   const rowsMax = S.topFloor - 1;
   const svgH = TOP + PAD + rowsMax * (H + GY) - GY + PAD + GROUND;
@@ -83,12 +83,17 @@
     const bw = PAD * 2 + per * W + (per - 1) * GX;
     const by = TOP + (S.topFloor - top) * (H + GY);
     out += `<rect class="body" x="${x0}" y="${by}" width="${bw}" height="${svgH - by}" rx="3"/>`;
+    // Світлі вікна — випадкові, як на сайті: лише кількість по секції.
+    const slots = Object.values(floors).reduce((n, f) => n + f.length, 0);
+    const order = [...Array(slots).keys()].sort(() => Math.random() - 0.5);
+    const isLit = new Set(order.slice(0, Math.min(V.sections[si].inDah, slots)));
+    let k = 0;
     for (let f = 2; f <= top; f++) {
       const list = floors[f] || [];
       const y = by + PAD + (top - f) * (H + GY);
       const off = ((per - list.length) * (W + GX)) / 2;
-      list.forEach((apt, c) => {
-        out += `<rect class="${dah.get(apt) ? "lit" : "win"}" x="${x0 + PAD + off + c * (W + GX)}" y="${y}" width="${W}" height="${H}" rx="1.5"/>`;
+      list.forEach((_, c) => {
+        out += `<rect class="${isLit.has(k++) ? "lit" : "win"}" x="${x0 + PAD + off + c * (W + GX)}" y="${y}" width="${W}" height="${H}" rx="1.5"/>`;
       });
     }
     out += `<rect class="plinth" x="${x0}" y="${svgH - GROUND}" width="${bw}" height="${GROUND}"/>`;

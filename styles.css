@@ -105,15 +105,13 @@ mark { background: linear-gradient(transparent 62%, var(--orange-l) 62%, var(--o
 .door { fill: #142a0e; }
 .shop { fill: #1f3818; stroke: #3d5c34; stroke-width: 1; }
 .lamp { fill: var(--n-lit); filter: drop-shadow(0 0 4px var(--n-lit)); }
-.w { fill: var(--n-win); cursor: pointer; }
-.w--none { fill: #2a4623; cursor: default; }
+.w { fill: var(--n-win); }
 .lit { filter: drop-shadow(0 0 5px rgba(255, 191, 77, .75)); }
 .w--on rect { fill: var(--n-lit); }
 .w--on path { stroke: #c98a2a; stroke-width: 1.4; }
 .w--on { opacity: 0; }
 .go .w--on { animation: light .5s ease forwards; }
 @keyframes light { 0% { opacity: 0; } 40% { opacity: 1; } 55% { opacity: .5; } 100% { opacity: 1; } }
-rect.w:hover, .w--on:hover rect { stroke: #fff; stroke-width: 1.5; }
 .forest { position: absolute; left: 0; right: 0; bottom: 36px; height: 130px; overflow: hidden; pointer-events: none; }
 .forest svg { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 1600px; height: 130px; fill: #27501c; opacity: .8; }
 .lake { position: absolute; left: 0; right: 0; bottom: 36px; z-index: 2; height: 22px; overflow: hidden; pointer-events: none; background: linear-gradient(180deg, rgba(20, 48, 16, .2), #163411); }
@@ -121,9 +119,6 @@ rect.w:hover, .w--on:hover rect { stroke: #fff; stroke-width: 1.5; }
 .legend { display: flex; gap: 22px; flex-wrap: wrap; justify-content: center; padding: 18px 16px 30px; font-size: .92rem; color: #c9d6bd; background: #143010; }
 .lg { display: inline-block; width: 14px; height: 11px; border-radius: 2px; background: var(--n-win); outline: 1px solid #3d5c34; margin-right: 8px; vertical-align: -1px; }
 .lg--on { background: var(--n-lit); box-shadow: 0 0 8px var(--n-lit); outline: 0; }
-.tip { position: fixed; z-index: 20; transform: translate(-50%, calc(-100% - 10px)); background: #fff; color: var(--text); padding: 6px 12px; border-radius: 10px; font-size: .88rem; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .15s; box-shadow: var(--shadow); }
-.tip--on { opacity: 1; }
-.tip b { color: var(--green); }
 
 /* ---------- Секції ---------- */
 .section { padding: 56px 0; }
