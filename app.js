@@ -165,6 +165,28 @@
   $("#team-list").innerHTML = S.team.map((t) => `<div class="team__sec card"><h3>${esc(t.section)}</h3>` +
     t.people.map((p) => `<div class="person"><span>${esc(p.name)}</span><a href="${esc(p.tg)}" target="_blank" rel="noopener">Telegram ↗</a></div>`).join("") + "</div>").join("") + botCard;
 
+  // ---------- Світло в шапці ----------
+  // Той самий power.json, що й на /svitlo/ (збирає GitHub Actions з каналу @power_po2).
+  const pwr = $("#pwr");
+  const pwrShow = (d) => {
+    const ev = (d.events || []).slice().sort((a, b) => Date.parse(a.t) - Date.parse(b.t));
+    const last = ev[ev.length - 1];
+    if (!last) return;
+    const m = Math.max(0, Math.round((Date.now() - Date.parse(last.t)) / 60e3));
+    const h = Math.floor(m / 60);
+    pwr.dataset.state = last.on ? "on" : "off";
+    $(".pwr__txt").textContent = last.on ? "Світло є" : "Без світла";
+    $(".pwr__since").textContent = h >= 24 ? `${Math.floor(h / 24)} д ${h % 24} год` : h ? `${h} год ${m % 60} хв` : `${m} хв`;
+  };
+  let pwrData = null;
+  const pwrLoad = () => fetch("https://raw.githubusercontent.com/yegoriy90/po2-osbb/power-data/power.json?t=" + Date.now(), { cache: "no-store" })
+    .then((r) => (r.ok ? r.json() : Promise.reject()))
+    .then((d) => { pwrData = d; pwrShow(d); })
+    .catch(() => {});
+  pwrLoad();
+  setInterval(pwrLoad, 5 * 60e3);
+  setInterval(() => pwrData && pwrShow(pwrData), 60e3);
+
   // ---------- Поділитися ----------
   $("#share").onclick = async (e) => {
     const data = { title: document.title, text: shareText, url: location.href };

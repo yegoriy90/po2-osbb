@@ -1,4 +1,6 @@
 /* Сторінка «Світло». Базові токени й шапка — з ../styles.css */
+.topbar__in { display: flex; justify-content: space-between; } /* тут лише лого й кнопка */
+@media (max-width: 400px) { .brand b { display: block; } }
 .pw-logo { display: grid; place-items: center; border-radius: 50%; background: var(--n-lit); font-size: 1.4rem; }
 .pw { padding-top: 24px; padding-bottom: 40px; display: grid; gap: 18px; }
 .pw-muted { color: var(--muted); font-size: .92rem; }
