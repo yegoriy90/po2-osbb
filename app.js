@@ -168,15 +168,36 @@
   // ---------- Світло в шапці ----------
   // Той самий power.json, що й на /svitlo/ (збирає GitHub Actions з каналу @power_po2).
   const pwr = $("#pwr");
+  // Київський час: ключ дня "YYYY-MM-DD" і "HH:MM" дня → мітка часу
+  const TZ = "Europe/Kyiv";
+  const kParts = (t) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+    .formatToParts(t).reduce((o, p) => ((o[p.type] = p.value), o), {});
+  const kDay = (t) => { const p = kParts(t); return `${p.year}-${p.month}-${p.day}`; };
+  const kOff = (t) => { const p = kParts(t); return Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second) - Math.floor(t / 1000) * 1000; };
+  const kAt = (day, hhmm) => { const g = Date.parse(`${day}T${hhmm === "24:00" ? "23:59" : hhmm}:00Z`); return g - kOff(g - kOff(g)) + (hhmm === "24:00" ? 60e3 : 0); };
+  const hm = (t) => new Intl.DateTimeFormat("uk-UA", { timeZone: TZ, hour: "2-digit", minute: "2-digit" }).format(t);
+  const ago = (m) => { const h = Math.floor(m / 60); return h >= 24 ? `${Math.floor(h / 24)} д ${h % 24} год` : h ? `${h} год ${m % 60} хв` : `${m} хв`; };
+
   const pwrShow = (d) => {
+    const now = Date.now();
     const ev = (d.events || []).slice().sort((a, b) => Date.parse(a.t) - Date.parse(b.t));
     const last = ev[ev.length - 1];
     if (!last) return;
-    const m = Math.max(0, Math.round((Date.now() - Date.parse(last.t)) / 60e3));
-    const h = Math.floor(m / 60);
     pwr.dataset.state = last.on ? "on" : "off";
     $(".pwr__txt").textContent = last.on ? "Світло є" : "Без світла";
-    $(".pwr__since").textContent = h >= 24 ? `${Math.floor(h / 24)} д ${h % 24} год` : h ? `${h} год ${m % 60} хв` : `${m} хв`;
+    $(".pwr__since").textContent = ago(Math.max(0, Math.round((now - Date.parse(last.t)) / 60e3)));
+
+    // Графік: поточний або найближчий плановий слот (сьогодні/завтра)
+    const today = kDay(now), tomorrow = kDay(now + 864e5), sch = d.schedules || {};
+    const slots = [today, tomorrow].flatMap((k) => (sch[k]?.slots || []).map(([a, b]) => ({ s: kAt(k, a), e: b === "00:00" ? kAt(k, "24:00") : kAt(k, b), k })));
+    const cur = slots.find((x) => x.s <= now && now < x.e), next = slots.find((x) => x.s > now);
+    let txt = "", short = "", tip = "";
+    if (sch[today]?.emergency) { txt = "екстрені"; short = "⚠"; tip = "Екстрені відключення: графіки не діють"; }
+    else if (cur) { txt = last.on ? `відкл. до ${hm(cur.e)}` : `до ${hm(cur.e)}`; short = `до ${hm(cur.e)}`; tip = `За графіком відключення до ${hm(cur.e)}`; }
+    else if (next) { txt = `відкл. ${next.k === today ? "" : "завтра "}о ${hm(next.s)}`; short = `о ${hm(next.s)}`; tip = `Наступне відключення за графіком: ${next.k === today ? "сьогодні" : "завтра"} ${hm(next.s)}–${hm(next.e)}`; }
+    $(".pwr__next").textContent = txt;
+    $(".pwr__next").dataset.short = short;
+    pwr.title = (tip ? tip + ". " : "") + "Дані світлобота @power_po2";
   };
   let pwrData = null;
   const pwrLoad = () => fetch("https://raw.githubusercontent.com/yegoriy90/po2-osbb/power-data/power.json?t=" + Date.now(), { cache: "no-store" })

@@ -61,7 +61,9 @@ h3 { font-size: 1.15rem; font-weight: 800; }
 .pwr:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
 .pwr__dot { position: relative; flex: 0 0 12px; width: 12px; height: 12px; border-radius: 50%; background: #c9c2b2; }
 .pwr__since { font-weight: 600; font-size: .85rem; opacity: .8; }
-.pwr__since:empty { display: none; }
+.pwr__next { font-weight: 700; font-size: .85rem; padding-left: 10px; border-left: 1.5px solid currentColor; border-color: rgba(107, 74, 16, .3); }
+.pwr[data-state="off"] .pwr__next { border-color: rgba(223, 233, 211, .3); }
+.pwr__since:empty, .pwr__next:empty { display: none; }
 .pwr[data-state="on"] { background: linear-gradient(135deg, #fff4d6, #ffe3a3); border-color: #ffd37a; color: #6b4a10; }
 .pwr[data-state="on"] .pwr__dot { background: #ffb020; box-shadow: 0 0 0 3px rgba(255, 176, 32, .25), 0 0 12px #ffb020; }
 .pwr[data-state="on"] .pwr__dot::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: #ffb020; animation: pwr-pulse 2s ease-out infinite; }
@@ -260,6 +262,9 @@ mark { background: linear-gradient(transparent 62%, var(--orange-l) 62%, var(--o
 .footer { border-top: 1px dashed #d9cfba; margin-top: 40px; padding: 26px 0 40px; color: var(--muted); font-size: .9rem; font-weight: 600; }
 .footer__in { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 
+@media (max-width: 1060px) {
+  .pwr__since { display: none; }
+}
 @media (max-width: 900px) {
   .why, .facts, .team { grid-template-columns: minmax(0, 1fr); }
   .theses { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -288,10 +293,15 @@ mark { background: linear-gradient(transparent 62%, var(--orange-l) 62%, var(--o
   .pill__long { display: none; }
   .pill__short { display: inline; }
   .pwr { height: 38px; padding: 0 11px 0 10px; gap: 7px; font-size: .85rem; }
-  .pwr__since { display: none; }
+  .pwr__next { padding-left: 7px; font-size: .78rem; }
 }
-@media (max-width: 400px) {
+@media (max-width: 420px) {
   .brand b { display: none; }
+  .pwr__next { font-size: 0; padding-left: 7px; }
+  .pwr__next::after { content: attr(data-short); font-size: .78rem; }
+  .pwr { padding: 0 10px 0 9px; gap: 6px; font-size: .82rem; }
+  .pwr__dot { flex-basis: 10px; width: 10px; height: 10px; }
+  .topbar .pill--orange { padding: 9px 12px; font-size: .86rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .pwr__dot::after { animation: none !important; }
