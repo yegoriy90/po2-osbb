@@ -95,7 +95,7 @@
       return `<div class="pw-day-plan"><h3>${label}, ${weekday(midnight(k) + H)}</h3>
         ${s.emergency ? '<div class="pw-alert">🚨 Екстрені відключення — графіки не застосовуються</div>' : ""}
         ${s.note ? `<div class="pw-note">🔔 ${s.note.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]))}</div>` : ""}
-        ${s.slots.length ? `<ul>${items}</ul><p>Усього за графіком: ${dur(total)}</p>` : `<p>${s.noOutages ? "Відключень не заплановано 🎉" : "Планових відключень немає."}</p>`}</div>`;
+        ${s.slots.length ? `<ul>${items}</ul><p>Усього за графіком: ${dur(total)}</p>` : `<p>${s.emergency ? "Графік не діє — світло можуть вимкнути будь-коли." : s.noOutages ? "Відключень не заплановано 🎉" : "Планових відключень немає."}</p>`}</div>`;
     };
     $("#sched").innerHTML = dayPlan(today, "Сьогодні") + dayPlan(tomorrow, "Завтра");
 
