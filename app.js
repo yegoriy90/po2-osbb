@@ -176,6 +176,7 @@
   const kOff = (t) => { const p = kParts(t); return Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second) - Math.floor(t / 1000) * 1000; };
   const kAt = (day, hhmm) => { const g = Date.parse(`${day}T${hhmm === "24:00" ? "23:59" : hhmm}:00Z`); return g - kOff(g - kOff(g)) + (hhmm === "24:00" ? 60e3 : 0); };
   const hm = (t) => new Intl.DateTimeFormat("uk-UA", { timeZone: TZ, hour: "2-digit", minute: "2-digit" }).format(t);
+  const hmEnd = (t) => (hm(t) === "00:00" ? "24:00" : hm(t)); // кінець слота опівночі
   const ago = (m) => { const h = Math.floor(m / 60); return h >= 24 ? `${Math.floor(h / 24)} д ${h % 24} год` : h ? `${h} год ${m % 60} хв` : `${m} хв`; };
 
   const pwrShow = (d) => {
@@ -193,8 +194,8 @@
     const cur = slots.find((x) => x.s <= now && now < x.e), next = slots.find((x) => x.s > now);
     let txt = "", short = "", tip = "";
     if (sch[today]?.emergency) { txt = "екстрені"; short = "⚠"; tip = "Екстрені відключення: графіки не діють"; }
-    else if (cur) { txt = last.on ? `відкл. до ${hm(cur.e)}` : `до ${hm(cur.e)}`; short = `до ${hm(cur.e)}`; tip = `За графіком відключення до ${hm(cur.e)}`; }
-    else if (next) { txt = `відкл. ${next.k === today ? "" : "завтра "}о ${hm(next.s)}`; short = `о ${hm(next.s)}`; tip = `Наступне відключення за графіком: ${next.k === today ? "сьогодні" : "завтра"} ${hm(next.s)}–${hm(next.e)}`; }
+    else if (cur) { txt = last.on ? `відкл. до ${hmEnd(cur.e)}` : `до ${hmEnd(cur.e)}`; short = `до ${hmEnd(cur.e)}`; tip = `За графіком відключення до ${hmEnd(cur.e)}`; }
+    else if (next) { txt = `відкл. ${next.k === today ? "" : "завтра "}о ${hm(next.s)}`; short = `о ${hm(next.s)}`; tip = `Наступне відключення за графіком: ${next.k === today ? "сьогодні" : "завтра"} ${hm(next.s)}–${hmEnd(next.e)}`; }
     $(".pwr__next").textContent = txt;
     $(".pwr__next").dataset.short = short;
     pwr.title = (tip ? tip + ". " : "") + "Дані світлобота @power_po2";

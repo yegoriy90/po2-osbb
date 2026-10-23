@@ -53,7 +53,6 @@
 .pw-day-plan li.past { color: var(--muted); font-weight: 500; text-decoration: line-through; }
 .pw-day-plan li.now { color: var(--red); }
 .pw-day-plan p { margin: 10px 0 0; color: var(--muted); font-size: .9rem; }
-.pw-note { background: var(--orange-l); color: #7a4a10; border-radius: 12px; padding: 8px 12px; margin-bottom: 10px; font-size: .88rem; line-height: 1.4; }
 .pw-alert { background: var(--red-bg); color: var(--red); font-weight: 800; border-radius: 12px; padding: 8px 12px; margin-bottom: 10px; font-size: .92rem; }
 
 .pw-cta { display: flex; gap: 18px; align-items: center; justify-content: space-between; padding: 22px 24px; background: var(--green-bg); }

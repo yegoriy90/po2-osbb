@@ -7,6 +7,7 @@
   // ---------- Час по Києву ----------
   const fmt = (opts) => new Intl.DateTimeFormat("uk-UA", { timeZone: TZ, ...opts });
   const hm = (t) => fmt({ hour: "2-digit", minute: "2-digit" }).format(t);
+  const hmEnd = (t) => (hm(t) === "00:00" ? "24:00" : hm(t)); // кінець слота опівночі
   const dayKey = (t) => fmt({ year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(t)
     .reduce((o, p) => ((o[p.type] = p.value), o), {});
   const key = (t) => { const p = dayKey(t); return `${p.year}-${p.month}-${p.day}`; };
@@ -69,8 +70,8 @@
     const cur = slots.find((x) => x.s <= now && now < x.e), next = slots.find((x) => x.s > now);
     const emergency = sched[today]?.emergency;
     $("#now-plan").textContent = emergency ? "⚠️ Екстрені відключення: графіки зараз не діють"
-      : cur ? `За графіком зараз відключення до ${hm(cur.e)}`
-      : next ? `Наступне за графіком: ${key(next.s) === today ? "сьогодні" : "завтра"} ${hm(next.s)}–${hm(next.e)}` : "";
+      : cur ? `За графіком зараз відключення до ${hmEnd(cur.e)}`
+      : next ? `Наступне за графіком: ${key(next.s) === today ? "сьогодні" : "завтра"} ${hm(next.s)}–${hmEnd(next.e)}` : "";
 
     // ---- Сьогодні ----
     const a = midnight(today), b = a + DAY;
@@ -91,7 +92,6 @@
       const total = s.slots.reduce((n, [x, y]) => n + ((y === "24:00" || y === "00:00" ? midnight(k) + DAY : at(k, y)) - at(k, x)), 0);
       return `<div class="pw-day-plan"><h3>${label}, ${weekday(midnight(k) + H)}</h3>
         ${s.emergency ? '<div class="pw-alert">🚨 Екстрені відключення — графіки не застосовуються</div>' : ""}
-        ${s.note ? `<div class="pw-note">🔔 ${s.note.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]))}</div>` : ""}
         ${s.slots.length ? `<ul>${items}</ul><p>Усього за графіком: ${dur(total)}</p>` : `<p>${s.emergency ? "Графік не діє — світло можуть вимкнути будь-коли." : s.noOutages ? "Відключень не заплановано 🎉" : "Планових відключень немає."}</p>`}</div>`;
     };
     $("#sched").innerHTML = dayPlan(today, "Сьогодні") + dayPlan(tomorrow, "Завтра");
@@ -107,8 +107,8 @@
     $("#week-total").textContent = iv.length ? `без світла: ${dur(weekOff)}` : "";
 
     // ---- Свіжість ----
-    const upd = Date.parse(D.updatedAt);
-    $("#updated").textContent = D.live ? "стан наживо" : `оновлено ${hm(upd)}` + (now - upd > 40 * 60e3 ? " · дані можуть запізнюватися" : "");
+    $("#updated").textContent = `стан наживо · перевірено ${hm(Date.parse(D.updatedAt))}`;
+    if (D.group) document.querySelectorAll(".js-group").forEach((el) => (el.textContent = "група " + D.group));
   };
 
   Power.watch(render, () => {

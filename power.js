@@ -1,15 +1,14 @@
-// Дані про світло для шапки (app.js) і сторінки /svitlo/ (svitlo.js).
-// Два джерела, які доповнюють одне одного:
-//  • API світлобота https://light.rmn.pp.ua — живий стан і графік (CORS відкритий для po2.kyiv.ua);
-//  • power.json з гілки power-data — історія подій із каналу @power_po2 (tools/power_fetch.py).
-// Якщо одне з джерел недоступне, працює інше.
+// Дані про світло для шапки (app.js) і сторінки /svitlo/ (svitlo.js) —
+// з API світлобота @power_po2: https://light.rmn.pp.ua/api (доки: /api/docs, /llms.txt).
+// CORS відкритий для https://po2.kyiv.ua, токенів не треба.
+//   /power-status        — живий стан { status: on|off, timestamp, group: "5.1" }
+//   /events?location=home — історія перемикань [{ status, timestamp }], від нових до старих
+//   /schedule/home        — графік на сьогодні/завтра { status, slots }
 window.Power = (function () {
   const API = "https://light.rmn.pp.ua/api";
-  const RAW = "https://raw.githubusercontent.com/yegoriy90/po2-osbb/power-data/power.json";
-  const get = (url) => fetch(url + (url.includes("?") ? "&" : "?") + "t=" + Date.now(), { cache: "no-store" })
-    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)));
+  const get = (path) => fetch(API + path, { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(r.status)));
 
-  // Слот графіка → ["HH:MM", "HH:MM"]. Приймаємо хвилини від півночі (як у YASNO), години або рядки.
+  // Слот графіка → ["HH:MM", "HH:MM"]. Хвилини від півночі (як у YASNO), години або рядки.
   const hhmm = (v) => {
     if (typeof v === "string") { const m = v.match(/(\d{1,2}):(\d{2})/); return m ? m[1].padStart(2, "0") + ":" + m[2] : null; }
     if (typeof v !== "number") return null;
@@ -20,57 +19,44 @@ window.Power = (function () {
     if (Array.isArray(s)) return [hhmm(s[0]), hhmm(s[1])];
     if (s && typeof s === "object") {
       if (s.type && /possible|maybe/i.test(s.type)) return null; // «можливі» не показуємо як планові
-      return [hhmm(s.start ?? s.from ?? s.begin), hhmm(s.end ?? s.to ?? s.finish)];
+      return [hhmm(s.start ?? s.from), hhmm(s.end ?? s.to)];
     }
     return null;
   };
-  const apiDay = (d) => d && {
-    slots: (d.slots || []).map(slot).filter((x) => x && x[0] && x[1]),
-    emergency: /emergency/i.test(d.status || ""),
-    noOutages: /no.?outage|normal/i.test(d.status || "") && !(d.slots || []).length,
-  };
-  const dayKey = (iso) => (iso || "").slice(0, 10);
-
-  // Зливає power.json (історія) з живими даними API.
-  const merge = (hist, live, sched) => {
-    const out = { events: (hist?.events || []).slice(), schedules: { ...(hist?.schedules || {}) }, updatedAt: hist?.updatedAt, live: false };
-    if (live && (live.status === "on" || live.status === "off") && live.timestamp) {
-      const last = out.events[out.events.length - 1], on = live.status === "on";
-      // API знає про перемикання раніше, ніж Actions встигне прочитати канал, — додаємо подію
-      if ((!last || last.on !== on) && (!last || Date.parse(live.timestamp) > Date.parse(last.t))) {
-        out.events.push({ id: "api", t: live.timestamp, on });
-      }
-      out.live = true;
-      out.updatedAt = new Date().toISOString();
-    }
-    const s = sched?.schedule;
-    if (s) {
-      for (const d of [s.today, s.tomorrow]) {
-        const k = dayKey(d?.date), a = apiDay(d);
-        if (!k || !a) continue;
-        const old = out.schedules[k] || {};
-        // Слоти — з API, якщо вони там є; інакше лишаємо з каналу (API в «екстрених» віддає порожні)
-        out.schedules[k] = { ...old, slots: a.slots.length ? a.slots : (old.slots || []), emergency: a.emergency, noOutages: a.noOutages && !(old.slots || []).length };
-      }
-    }
-    return out;
+  const day = (d) => {
+    const slots = (d.slots || []).map(slot).filter((x) => x && x[0] && x[1]);
+    return { slots, emergency: /emergency/i.test(d.status || ""), noOutages: !slots.length && !/emergency|waiting/i.test(d.status || "") };
   };
 
-  let hist = null, live = null, sched = null;
-  const src = new URLSearchParams(location.search).get("src"); // ?src=файл — локальна перевірка без API
-  const loadHist = () => get(src || RAW).then((d) => (hist = d)).catch(() => {});
-  const loadLive = () => src ? Promise.resolve() : Promise.all([
-    get(API + "/power-status").then((d) => (live = d)).catch(() => {}),
-    get(API + "/schedule/home").then((d) => (sched = d)).catch(() => {}),
+  let events = null, live = null, sched = null;
+
+  // → { events: [{t, on}] за зростанням часу, schedules: { "YYYY-MM-DD": {slots, emergency, noOutages} }, group }
+  const build = () => {
+    const ev = (events || []).map((e) => ({ t: e.timestamp, on: e.status === "on" }))
+      .sort((a, b) => Date.parse(a.t) - Date.parse(b.t));
+    if (live && /^(on|off)$/.test(live.status) && live.timestamp) {
+      const last = ev[ev.length - 1], on = live.status === "on";
+      // power-status оновлюється щохвилини, events — рідше: якщо стан уже змінився, додаємо подію
+      if (!last || (last.on !== on && Date.parse(live.timestamp) >= Date.parse(last.t))) ev.push({ t: live.timestamp, on });
+    }
+    const schedules = {};
+    for (const d of [sched?.schedule?.today, sched?.schedule?.tomorrow]) if (d?.date) schedules[d.date.slice(0, 10)] = day(d);
+    return { events: ev, schedules, group: live?.group || live?.yasno_group, updatedAt: new Date().toISOString() };
+  };
+
+  const loadLive = () => get("/power-status").then((d) => (live = d)).catch(() => {});
+  const loadRest = () => Promise.all([
+    get("/events?location=home&limit=100").then((d) => (events = d)).catch(() => {}),
+    get("/schedule/home").then((d) => (sched = d)).catch(() => {}),
   ]);
 
-  // onData(merged) — викликається після кожного оновлення; onFail — якщо обидва джерела мовчать.
+  // onData(дані) — після кожного оновлення; onFail — якщо API не відповідає.
   const watch = (onData, onFail) => {
-    const emit = () => (hist || live) ? onData(merge(hist, live, sched)) : onFail && onFail();
-    Promise.all([loadHist(), loadLive()]).then(emit);
-    setInterval(() => loadLive().then(emit), 60e3);      // живий стан — щохвилини
-    setInterval(() => loadHist().then(emit), 5 * 60e3);  // історія — раз на 5 хв
-    setInterval(() => (hist || live) && emit(), 30e3);   // «уже N хв»
+    const emit = () => (events || live) ? onData(build()) : onFail && onFail();
+    Promise.all([loadLive(), loadRest()]).then(emit);
+    setInterval(() => loadLive().then(emit), 60e3);      // стан — щохвилини
+    setInterval(() => loadRest().then(emit), 5 * 60e3);  // історія й графік — раз на 5 хв
+    setInterval(() => (events || live) && emit(), 30e3); // «уже N хв»
   };
   return { watch };
 })();
