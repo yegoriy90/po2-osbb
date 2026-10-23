@@ -1,0 +1,70 @@
+<!doctype html>
+<!-- Прев'ю сторінки /svitlo/ (1200×630). Знімок робить tools/build_og.js → img/og-svitlo.png
+     Статичне: Telegram кешує прев'ю надовго, тож «живий» стан тут був би неправдою. -->
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Unbounded:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    font-family: Manrope, system-ui, sans-serif; color: #fff; position: relative;
+    background: radial-gradient(70% 90% at 80% 30%, #3d5a1f 0%, #1d3a16 50%, #122608 100%);
+  }
+  .txt { position: absolute; left: 64px; top: 60px; width: 620px; }
+  .eyebrow { font-weight: 700; font-size: 22px; color: #b9d98f; }
+  h1 { font-family: Unbounded, sans-serif; font-weight: 800; font-size: 64px; line-height: 1.05; margin-top: 18px; }
+  h1 span { color: #ffbf4d; text-shadow: 0 0 40px rgba(255, 191, 77, .55); }
+  ul { list-style: none; padding: 0; margin-top: 40px; display: grid; gap: 16px; }
+  li { display: flex; align-items: center; gap: 16px; font-size: 25px; font-weight: 700; color: #e6eedb; }
+  li i { flex: 0 0 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font-style: normal; font-size: 24px; background: rgba(255, 255, 255, .1); }
+  .url { position: absolute; left: 64px; bottom: 48px; font-weight: 800; font-size: 26px; }
+  .url::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #ffbf4d; margin-right: 12px; vertical-align: 3px; box-shadow: 0 0 12px #ffbf4d; }
+
+  .art { position: absolute; right: 64px; top: 70px; width: 420px; display: grid; justify-items: center; gap: 26px; }
+  .bulb { width: 210px; height: 260px; filter: drop-shadow(0 0 50px rgba(255, 191, 77, .6)); }
+  .pills { display: flex; gap: 14px; }
+  .pill { display: inline-flex; align-items: center; gap: 10px; height: 52px; padding: 0 22px 0 18px; border-radius: 99px; font-weight: 800; font-size: 22px; }
+  .pill i { width: 14px; height: 14px; border-radius: 50%; }
+  .on { background: linear-gradient(135deg, #fff4d6, #ffe3a3); color: #6b4a10; }
+  .on i { background: #ffb020; box-shadow: 0 0 0 4px rgba(255, 176, 32, .3), 0 0 14px #ffb020; }
+  .off { background: #142a0f; color: #dfe9d3; border: 2px solid #3a5a31; }
+  .off i { background: #24401e; box-shadow: inset 0 0 0 2px #4a6b40; }
+  .week { width: 400px; display: grid; gap: 7px; }
+  .row { height: 13px; border-radius: 5px; overflow: hidden; display: flex; background: #2f4d27; }
+  .row b { background: #ffbf4d; }
+  .row s { background: #24401e; text-decoration: none; }
+</style>
+</head>
+<body>
+  <div class="txt">
+    <div class="eyebrow">ЖК «Паркові Озера 2» · Воскресенська, 2В</div>
+    <h1>Чи є зараз<br><span>світло?</span></h1>
+    <ul>
+      <li><i>⚡</i>Стан у будинку прямо зараз</li>
+      <li><i>📅</i>Графік відключень групи 5.1</li>
+      <li><i>📊</i>Скільки без світла за тиждень</li>
+    </ul>
+  </div>
+  <div class="url">po2.kyiv.ua/svitlo</div>
+
+  <div class="art">
+    <svg class="bulb" viewBox="0 0 120 150" aria-hidden="true">
+      <defs><radialGradient id="g" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#fff6d8"/><stop offset=".55" stop-color="#ffd166"/><stop offset="1" stop-color="#ff9f1c"/></radialGradient></defs>
+      <path d="M60 6C32 6 14 26 14 50c0 17 9 28 18 37 6 6 9 12 9 19v6h38v-6c0-7 3-13 9-19 9-9 18-20 18-37C106 26 88 6 60 6z" fill="url(#g)"/>
+      <path d="M48 112V82l12 10 12-10v30" fill="none" stroke="#c97a10" stroke-width="3.5" stroke-linejoin="round"/>
+      <rect x="40" y="114" width="40" height="9" rx="4" fill="#cfd6c4"/><rect x="42" y="125" width="36" height="9" rx="4" fill="#b3bca6"/>
+      <path d="M50 138h20l-4 8h-12z" fill="#8f9a82"/>
+    </svg>
+    <div class="pills"><span class="pill on"><i></i>Світло є</span><span class="pill off"><i></i>Без світла</span></div>
+    <div class="week" id="week"></div>
+  </div>
+<script>
+  // Ілюстрація «тижня»: фіксований візерунок (не реальні дані — прев'ю кешується).
+  const pat = [[30,12,25,15,18],[22,14,30,12,22],[40,10,20,14,16],[18,16,28,10,28],[34,12,22,18,14],[26,14,24,12,24],[36,10,26,16,12]];
+  document.getElementById("week").innerHTML = pat.map((r) =>
+    `<div class="row">${r.map((w, i) => `<${i % 2 ? "s" : "b"} style="flex:${w}"></${i % 2 ? "s" : "b"}>`).join("")}</div>`).join("");
+</script>
+</body>
+</html>

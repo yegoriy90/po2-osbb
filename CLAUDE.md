@@ -9,7 +9,7 @@
 - `votes.js` — **генерується**, не редагувати вручну. Лише агрегати: по секціях `{total, inDah}`, площа в ДАХ, база ОСББ.
 - `app.js` — рендер: лічильник % площі, будинок з вікнами (SVG, світлі вікна розставляються **випадково** за кількістю по секції), тези, FAQ, команда.
 - `tools/build_votes.py` — збирає `votes.js` з реєстру власників `registry_*.xlsx` (аркуш «Реєстр мешканців», колонки A = №, B = площа, G = «✅ У ДАХ»).
-- `img/og.png` — прев'ю для Telegram/Viber/Facebook, **генерується** з `tools/og.html` (бере `data.js` + `votes.js`) командою `node tools/build_og.js`.
+- `img/og.png` — прев'ю для Telegram/Viber/Facebook, **генерується** з `tools/og.html` (бере `data.js` + `votes.js`) командою `node tools/build_og.js`. Та сама команда знімає `tools/og-svitlo.html` → `img/og-svitlo.png` (статичне прев'ю /svitlo/; живий стан туди не ставити — Telegram кешує). Після зміни прев'ю — оновити кеш Telegram через @WebpageBot.
 - `svitlo/` — сторінка «Світло» (po2.kyiv.ua/svitlo/): стан зараз, доба, тиждень, графік групи 5.1. Читає `power.json` з гілки `power-data` (raw.githubusercontent.com).
 - `tools/power_fetch.py` + `.github/workflows/power.yml` — раз на 10 хв парсять публічний канал t.me/s/power_po2 (світлобот сусіда) і force-push'ать `power.json` у `power-data` (гілка з одного коміту). Формат постів: «Світло з'явилось/зникло» + «Час: dd.mm.yyyy hh:mm:ss», графіки «Група: 5.1 … HH:MM - HH:MM», «ЕКСТРЕНІ ВІДКЛЮЧЕННЯ».
 - `img/qr-*.svg` — QR-коди ДАХ (`https://app.dah.in.ua/oNCk`) і бота (`https://t.me/PO2KYIVBOT`).
