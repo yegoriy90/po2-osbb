@@ -1,0 +1,39 @@
+# Раз на 10 хв забирає пости каналу @power_po2 і оновлює power.json у гілці power-data.
+# Сторінка po2.kyiv.ua/svitlo/ читає його з raw.githubusercontent.com.
+name: power
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: power
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Попередні дані
+        run: |
+          mkdir -p out
+          git fetch origin power-data --depth=1 && git show origin/power-data:power.json > out/power.json || echo "power-data ще немає — перший запуск"
+
+      - name: Забрати пости
+        run: python3 tools/power_fetch.py out/power.json
+
+      - name: Зберегти в power-data
+        run: |
+          cd out
+          git init -q -b power-data
+          git config user.name "power-bot"
+          git config user.email "power-bot@users.noreply.github.com"
+          git add power.json
+          git commit -q -m "power.json $(date -u +%FT%TZ)"
+          # Гілка з одного коміту, перезаписується щоразу — історія не росте.
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" power-data

@@ -1,0 +1,68 @@
+/* Сторінка «Світло». Базові токени й шапка — з ../styles.css */
+.pw-logo { display: grid; place-items: center; border-radius: 50%; background: var(--n-lit); font-size: 1.4rem; }
+.pw { padding-top: 24px; padding-bottom: 40px; display: grid; gap: 18px; }
+.pw-muted { color: var(--muted); font-size: .92rem; }
+
+.pw-now { border-radius: var(--radius); padding: 34px 28px; text-align: center; color: #fff; background: var(--n-bg); box-shadow: var(--shadow); }
+.pw-now__label { margin: 0; font: 800 clamp(2rem, 7vw, 3.4rem)/1.1 var(--display); }
+.pw-now__since { margin: 12px 0 0; font-size: 1.15rem; color: #dfe9d3; }
+.pw-now__since b { color: #fff; }
+.pw-now__plan { margin: 10px 0 0; font-size: .98rem; color: #b9d98f; }
+.pw-now__plan:empty, .pw-now__since:empty { display: none; }
+.pw-now[data-state="on"] { background: radial-gradient(120% 140% at 50% 0%, #ffd77a 0%, #ffbf4d 35%, #e8962a 100%); color: #3b2a08; }
+.pw-now[data-state="on"] .pw-now__since, .pw-now[data-state="on"] .pw-now__since b { color: #3b2a08; }
+.pw-now[data-state="on"] .pw-now__plan { color: #6b4a10; }
+.pw-now[data-state="off"] { background: radial-gradient(120% 140% at 50% 0%, #2f4d27 0%, #1d3a16 50%, #142a0f 100%); }
+
+.pw-card { padding: 22px 24px; }
+.pw-card__head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.pw-card__head h2 { font-size: 1.35rem; margin: 0; }
+
+/* смуга доби: факт + план */
+.pw-bar { position: relative; height: 28px; border-radius: 8px; overflow: hidden; background: #e9e4d8; }
+.pw-bar i { position: absolute; top: 0; bottom: 0; }
+.pw-bar .on { background: var(--n-lit); }
+.pw-bar .off { background: #2f4d27; }
+.pw-plan { position: relative; height: 8px; margin-bottom: 4px; }
+.pw-plan i { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: repeating-linear-gradient(135deg, var(--red) 0 4px, #f2a3a3 4px 8px); }
+.pw-now-mark { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--red); }
+.pw-ticks { position: relative; height: 18px; font-size: .78rem; color: var(--muted); }
+.pw-ticks span { position: absolute; transform: translateX(-50%); }
+.pw-ticks span:first-child { transform: none; }
+.pw-ticks span:last-child { transform: translateX(-100%); }
+
+.pw-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 10px; font-size: .88rem; color: var(--muted); }
+.pw-legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; }
+.pw-legend .on { background: var(--n-lit); }
+.pw-legend .off { background: #2f4d27; }
+.pw-legend .na { background: #e9e4d8; }
+.pw-legend .plan { background: repeating-linear-gradient(135deg, var(--red) 0 3px, #f2a3a3 3px 6px); }
+
+.pw-week { display: grid; gap: 10px; }
+.pw-row { display: grid; grid-template-columns: 78px 1fr 84px; gap: 12px; align-items: center; font-size: .92rem; }
+.pw-row .pw-bar { height: 18px; border-radius: 6px; }
+.pw-row b { text-align: right; font-weight: 700; color: var(--muted); white-space: nowrap; }
+
+.pw-sched { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.pw-day-plan { border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; }
+.pw-day-plan h3 { margin: 0 0 8px; font-size: 1rem; }
+.pw-day-plan ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.pw-day-plan li { display: flex; justify-content: space-between; font-weight: 700; }
+.pw-day-plan li.past { color: var(--muted); font-weight: 500; text-decoration: line-through; }
+.pw-day-plan li.now { color: var(--red); }
+.pw-day-plan p { margin: 10px 0 0; color: var(--muted); font-size: .9rem; }
+.pw-alert { background: var(--red-bg); color: var(--red); font-weight: 800; border-radius: 12px; padding: 8px 12px; margin-bottom: 10px; font-size: .92rem; }
+
+.pw-cta { display: flex; gap: 18px; align-items: center; justify-content: space-between; padding: 22px 24px; background: var(--green-bg); }
+.pw-cta h3 { margin: 0 0 4px; color: var(--green-d); }
+.pw-cta p { margin: 0; color: var(--muted); font-size: .95rem; }
+.pw-cta .btn { white-space: nowrap; }
+.pw-src { margin: 0; text-align: center; color: var(--muted); font-size: .88rem; }
+
+@media (max-width: 640px) {
+  .pw-now { padding: 28px 18px; }
+  .pw-card { padding: 18px 16px; }
+  .pw-row { grid-template-columns: 58px 1fr auto; gap: 8px; font-size: .82rem; }
+  .pw-cta { flex-direction: column; align-items: stretch; text-align: left; }
+  .topbar .pill { padding: 8px 12px; font-size: .85rem; }
+}
