@@ -1,0 +1,15 @@
+# ТИМЧАСОВИЙ: формат API світлобота light.rmn.pp.ua. Видалити після.
+name: probe
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          B=https://light.rmn.pp.ua
+          for p in "api/power-status" "api/schedule/home" "api/events?limit=8" "api/events?limit=200&location=home" "api/history?days=7" "api/stats" "llms.txt"; do
+            echo "################ /$p"
+            curl -sS -m 20 -D /tmp/h -o /tmp/b -H "Origin: https://po2.kyiv.ua" "$B/$p" -w "HTTP %{http_code} %{content_type} %{size_download}B\n" || true
+            grep -iE "access-control-allow-origin" /tmp/h || true
+            case "$p" in *limit=200*) python3 -c "import json;d=json.load(open('/tmp/b'));print(len(d), d[:2], d[-2:])";; *) head -c 5000 /tmp/b; echo;; esac
+          done
