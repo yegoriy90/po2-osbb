@@ -1,0 +1,26 @@
+# ТИМЧАСОВИЙ: розвідка API світлобота light.rmn.pp.ua. Видалити після.
+name: probe
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Root page
+        run: curl -sS -m 20 -D - https://light.rmn.pp.ua/ | head -c 6000; echo
+      - name: Common API paths
+        run: |
+          for p in api api/ api/status api/v1 api/v1/status status state docs swagger openapi.json api/docs api/openapi.json health robots.txt sitemap.xml; do
+            echo "=========== /$p"
+            curl -sS -m 15 -o /tmp/b -w "HTTP %{http_code} %{content_type}\n" -H "Origin: https://po2.kyiv.ua" -D /tmp/h "https://light.rmn.pp.ua/$p" || true
+            grep -i "access-control" /tmp/h || true
+            head -c 1500 /tmp/b; echo
+          done
+      - name: JS bundles referenced by root
+        run: |
+          curl -sS -m 20 https://light.rmn.pp.ua/ -o root.html
+          grep -oE '(src|href)="[^"]+\.(js|json)[^"]*"' root.html | head -20
+          for f in $(grep -oE 'src="[^"]+\.js[^"]*"' root.html | sed 's/src="//;s/"$//' | head -5); do
+            case "$f" in http*) u="$f";; /*) u="https://light.rmn.pp.ua$f";; *) u="https://light.rmn.pp.ua/$f";; esac
+            echo "=========== $u"
+            curl -sS -m 20 "$u" | grep -oE '(fetch|axios[^(]*)\([^)]{0,200}\)|"/api[^"]{0,120}"|`/api[^`]{0,120}`|/api/[A-Za-z0-9_/{}$.-]{1,80}' | sort -u | head -60
+          done
