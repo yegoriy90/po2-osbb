@@ -86,6 +86,7 @@ def parse(pid, text, posted):
         "slots": [[a.zfill(5), b.zfill(5)] for a, b in slots],
         "emergency": "екстрен" in low and "скасов" not in low,
         "noOutages": not slots and ("без відключ" in low or "відключень не" in low),
+        "text": text,  # для налагодження формату (канал і так публічний)
     })
 
 
