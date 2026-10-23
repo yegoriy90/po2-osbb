@@ -81,13 +81,18 @@ def parse(pid, text, posted):
     if not d:
         return None
     day = f"{d[3]}-{d[2]}-{d[1]}"
-    slots = re.findall(r"(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})", text)
+    # Слоти — лише з блоку «Планові відключення:». Перший рядок «Графік змінився: скасували
+    # 12:00–15:30…» теж містить інтервали, але це опис змін, а не графік.
+    plan = re.split(r"планові\s+відключення\s*:", text, flags=re.I)
+    slots = re.findall(r"(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})", plan[1]) if len(plan) > 1 else []
+    first = text.split("\n", 1)[0]
+    note = re.sub(r"^\W+", "", first).strip() if "змінив" in first.lower() else None
     return ("schedule", day, {
         "id": pid,
         "slots": [[a.zfill(5), b.zfill(5)] for a, b in slots],
         "emergency": "екстрен" in low and "скасов" not in low,
         "noOutages": not slots and ("без відключ" in low or "відключень не" in low),
-        "text": text,  # для налагодження формату (канал і так публічний)
+        "note": note,  # «скасували відключення 12:00–15:30…»
     })
 
 
@@ -124,7 +129,7 @@ def main(path, local=None):
         else:
             old = data["schedules"].get(r[1])
             if not old or old["id"] <= pid:  # пізніший пост про той самий день — актуальніший
-                if old and not r[2]["slots"]:  # «екстрені, графіки не діють» — плановий графік лишаємо
+                if old and r[2]["emergency"] and not r[2]["slots"]:  # «екстрені, графіки не діють» — плановий лишаємо
                     r[2]["slots"] = old["slots"]
                 data["schedules"][r[1]] = r[2]
 

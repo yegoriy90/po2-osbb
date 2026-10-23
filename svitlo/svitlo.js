@@ -94,6 +94,7 @@
       const total = s.slots.reduce((n, [x, y]) => n + ((y === "24:00" || y === "00:00" ? midnight(k) + DAY : at(k, y)) - at(k, x)), 0);
       return `<div class="pw-day-plan"><h3>${label}, ${weekday(midnight(k) + H)}</h3>
         ${s.emergency ? '<div class="pw-alert">🚨 Екстрені відключення — графіки не застосовуються</div>' : ""}
+        ${s.note ? `<div class="pw-note">🔔 ${s.note.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]))}</div>` : ""}
         ${s.slots.length ? `<ul>${items}</ul><p>Усього за графіком: ${dur(total)}</p>` : `<p>${s.noOutages ? "Відключень не заплановано 🎉" : "Планових відключень немає."}</p>`}</div>`;
     };
     $("#sched").innerHTML = dayPlan(today, "Сьогодні") + dayPlan(tomorrow, "Завтра");
