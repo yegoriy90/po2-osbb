@@ -9,6 +9,7 @@
 - `votes.js` — **генерується**, не редагувати вручну. Номер квартири + позначка «в ДАХ», площа в ДАХ, база ОСББ.
 - `app.js` — рендер: лічильник % площі, будинок з вікнами (SVG), тези, FAQ, команда.
 - `tools/build_votes.py` — збирає `votes.js` з реєстру власників `registry_*.xlsx` (аркуш «Реєстр мешканців», колонки A = №, B = площа, G = «✅ У ДАХ»).
+- `img/og.png` — прев'ю для Telegram/Viber/Facebook, **генерується** з `tools/og.html` (бере `data.js` + `votes.js`) командою `node tools/build_og.js`.
 - `img/qr-*.svg` — QR-коди ДАХ (`https://app.dah.in.ua/oNCk`) і бота (`https://t.me/PO2KYIVBOT`).
 
 ## Приватність — обов'язково
@@ -30,7 +31,8 @@
 ## Оновлення голосів
 ```sh
 python3 tools/build_votes.py registry_vNN.xlsx   # перегенерує votes.js
-git add votes.js && git commit -m "Оновлено голоси ДАХ" && git push
+node tools/build_og.js                           # оновить % на прев'ю img/og.png
+git add votes.js img/og.png && git commit -m "Оновлено голоси ДАХ" && git push
 ```
 Реєстр лежить у Google Drive власника (registry_v10.xlsx на 22.10.2026) — попроси посилання, завантаж у scratchpad, не в репозиторій.
 

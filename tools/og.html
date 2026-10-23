@@ -1,0 +1,105 @@
+<!doctype html>
+<!-- Шаблон прев'ю для соцмереж (1200×630). Знімок робить tools/build_og.js → img/og.png -->
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Unbounded:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    font-family: Manrope, system-ui, sans-serif; color: #fff;
+    background: radial-gradient(120% 90% at 85% 0%, #2f5a24 0%, #1d3a16 55%, #142a0f 100%);
+    position: relative;
+  }
+  .txt { position: absolute; left: 64px; top: 60px; width: 600px; }
+  .eyebrow { font-weight: 700; font-size: 22px; color: #b9d98f; letter-spacing: .02em; }
+  h1 { font-family: Unbounded, sans-serif; font-weight: 800; font-size: 46px; line-height: 1.12; margin-top: 18px; }
+  h1 span { color: #ffbf4d; }
+  .pct { display: flex; align-items: baseline; gap: 16px; margin-top: 40px; }
+  .pct b { font-family: Unbounded, sans-serif; font-size: 76px; line-height: 1; color: #ffbf4d; }
+  .pct small { font-size: 24px; font-weight: 700; color: #dfe9d3; line-height: 1.25; }
+  .bar { position: relative; height: 18px; border-radius: 9px; background: rgba(255,255,255,.14); margin-top: 22px; }
+  .bar i { position: absolute; inset: 0 auto 0 0; border-radius: 9px; background: linear-gradient(90deg, #ff8a1f, #ffbf4d); }
+  .bar u { position: absolute; top: -8px; bottom: -8px; left: 50%; width: 3px; background: #fff; border-radius: 2px; }
+  .bar em { position: absolute; top: 28px; left: 50%; transform: translateX(-50%); font-style: normal; font-weight: 700; font-size: 18px; color: #dfe9d3; white-space: nowrap; }
+  .cta { display: inline-block; margin-top: 64px; padding: 14px 26px; border-radius: 999px; background: #ff8a1f; color: #1d2a12; font-weight: 800; font-size: 24px; }
+  .url { position: absolute; left: 64px; bottom: 48px; font-weight: 800; font-size: 26px; color: #fff; }
+  .url::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #ffbf4d; margin-right: 12px; vertical-align: 3px; box-shadow: 0 0 12px #ffbf4d; }
+  svg { position: absolute; right: 56px; bottom: 0; }
+  .body { fill: #2f4d27; } .win { fill: #24401e; } .lit { fill: #ffbf4d; }
+  .plinth { fill: #3a5a31; } .cap { fill: #b9d98f; font: 700 15px Manrope, sans-serif; }
+</style>
+</head>
+<body>
+  <div class="txt">
+    <div class="eyebrow" id="eyebrow"></div>
+    <h1>Створюємо ОСББ.<br><span>Потрібен твій голос</span></h1>
+    <div class="pct"><b id="pct"></b><small id="sub"></small></div>
+    <div class="bar"><i id="fill"></i><u></u><em>мета — понад 50%</em></div>
+    <div class="cta">Зареєструйся в ДАХ — це 2 хвилини</div>
+  </div>
+  <div class="url">po2.kyiv.ua</div>
+  <svg id="town"></svg>
+<script src="../data.js"></script>
+<script src="../votes.js"></script>
+<script>
+  const S = window.SITE, V = window.VOTES;
+  const num = (n) => n.toLocaleString("uk-UA");
+  const pct = (V.dahArea / V.baseArea) * 100;
+  const inDah = V.apartments.filter((a) => a[1]).length;
+  document.getElementById("eyebrow").textContent = `ЖК «${S.complex}» · Воскресенська, 2В`;
+  document.getElementById("pct").textContent = pct.toFixed(1).replace(".", ",") + "%";
+  document.getElementById("sub").innerHTML = `площі вже в ДАХ<br>${num(inDah)} квартир із ${num(V.apartments.length)}`;
+  document.getElementById("fill").style.width = Math.min(100, pct) + "%";
+
+  // Та сама розкладка, що й у app.js: "2:3, 3-19:10" → { 2: [1, 2, 3], ... }
+  const parseLayout = (sec) => {
+    const floors = {};
+    let n = sec.first;
+    sec.layout.split(",").forEach((part) => {
+      const [fl, cnt] = part.trim().split(":");
+      const [f1, f2 = f1] = fl.split("-").map(Number);
+      for (let f = f1; f <= f2; f++) {
+        floors[f] = [];
+        for (let i = 0; i < +cnt; i++) {
+          const a = n++;
+          if (S.split[a]) { floors[f].push(...S.split[a]); i += S.split[a].length - 1; } else floors[f].push(a);
+        }
+      }
+    });
+    return floors;
+  };
+
+  const dah = new Map(V.apartments);
+  const W = 7, H = 10, GX = 2.5, GY = 5, PAD = 7, GAP = 10, GROUND = 22, TOP = 28;
+  const rowsMax = S.topFloor - 1;
+  const svgH = TOP + PAD + rowsMax * (H + GY) - GY + PAD + GROUND;
+  let x0 = 0, out = "";
+  S.sections.forEach((s, si) => {
+    const floors = parseLayout(s);
+    const top = Math.max(...Object.keys(floors).map(Number));
+    const per = Math.max(...Object.values(floors).map((f) => f.length));
+    const bw = PAD * 2 + per * W + (per - 1) * GX;
+    const by = TOP + (S.topFloor - top) * (H + GY);
+    out += `<rect class="body" x="${x0}" y="${by}" width="${bw}" height="${svgH - by}" rx="3"/>`;
+    for (let f = 2; f <= top; f++) {
+      const list = floors[f] || [];
+      const y = by + PAD + (top - f) * (H + GY);
+      const off = ((per - list.length) * (W + GX)) / 2;
+      list.forEach((apt, c) => {
+        out += `<rect class="${dah.get(apt) ? "lit" : "win"}" x="${x0 + PAD + off + c * (W + GX)}" y="${y}" width="${W}" height="${H}" rx="1.5"/>`;
+      });
+    }
+    out += `<rect class="plinth" x="${x0}" y="${svgH - GROUND}" width="${bw}" height="${GROUND}"/>`;
+    out += `<text class="cap" x="${x0 + bw / 2}" y="${by - 10}" text-anchor="middle">С${si + 1}</text>`;
+    x0 += bw + GAP;
+  });
+  const town = document.getElementById("town");
+  town.setAttribute("width", x0 - GAP);
+  town.setAttribute("height", svgH);
+  town.innerHTML = `<defs><filter id="glow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>` + out;
+  town.querySelectorAll(".lit").forEach((r) => r.setAttribute("filter", "url(#glow)"));
+</script>
+</body>
+</html>
