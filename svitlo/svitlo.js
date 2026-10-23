@@ -69,15 +69,20 @@
     const slots = [today, tomorrow].flatMap((k) => (sched[k]?.slots || []).map(([s, e]) => ({ s: at(k, s), e: e === "24:00" || e === "00:00" ? midnight(k) + DAY : at(k, e) })));
     const cur = slots.find((x) => x.s <= now && now < x.e), next = slots.find((x) => x.s > now);
     const emergency = sched[today]?.emergency;
-    $("#now-plan").textContent = emergency ? "⚠️ Екстрені відключення: графіки зараз не діють"
+    $("#now-plan").classList.toggle("pw-now__plan--alert", !!emergency);
+    $("#now-plan").textContent = emergency ? "⚠ Екстрені відключення"
       : cur ? `За графіком зараз відключення до ${hmEnd(cur.e)}`
       : next ? `Наступне за графіком: ${key(next.s) === today ? "сьогодні" : "завтра"} ${hm(next.s)}–${hmEnd(next.e)}` : "";
 
     // ---- Сьогодні ----
     const a = midnight(today), b = a + DAY;
     const t = bar(iv, a, b, sched[today]?.slots, now);
-    $("#today").innerHTML = `<div class="pw-plan">${t.plan}</div><div class="pw-bar">${t.bar}</div>
+    // Екстрені: графік не діє, світло можуть вимкнути будь-коли — суцільна смуга на всю добу
+    const plan = emergency ? '<i class="emerg"><span>⚠ Екстрені відключення · графік не діє</span></i>' : t.plan;
+    $("#today").innerHTML = `<div class="pw-plan${emergency ? " pw-plan--emerg" : ""}">${plan}</div><div class="pw-bar">${t.bar}</div>
       <div class="pw-ticks"><span style="left:0">00</span><span style="left:25%">06</span><span style="left:50%">12</span><span style="left:75%">18</span><span style="left:100%">24</span></div>`;
+    document.querySelector(".pw-legend .lg-emerg").hidden = !emergency;
+    document.querySelector(".pw-legend .lg-plan").hidden = !!emergency;
     $("#today-total").textContent = known(iv, a, Math.min(b, now)) ? `без світла: ${dur(offIn(iv, a, Math.min(b, now)))}` : "";
 
     // ---- Графік ----
