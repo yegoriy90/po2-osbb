@@ -1,8 +1,5 @@
 (function () {
-  // power.json збирає GitHub Actions (tools/power_fetch.py) у гілку power-data.
-  // ?src=шлях — підставити свій файл (для перевірки локально).
-  const SRC = new URLSearchParams(location.search).get("src")
-    || "https://raw.githubusercontent.com/yegoriy90/po2-osbb/power-data/power.json";
+  // Дані — з ../power.js (API світлобота + історія power.json).
   const $ = (s) => document.querySelector(s);
   const H = 3600e3, DAY = 24 * H;
   const TZ = "Europe/Kyiv";
@@ -111,20 +108,12 @@
 
     // ---- Свіжість ----
     const upd = Date.parse(D.updatedAt);
-    $("#updated").textContent = `оновлено ${hm(upd)}` + (now - upd > 40 * 60e3 ? " · дані можуть запізнюватися" : "");
+    $("#updated").textContent = D.live ? "стан наживо" : `оновлено ${hm(upd)}` + (now - upd > 40 * 60e3 ? " · дані можуть запізнюватися" : "");
   };
 
-  let data = null;
-  const load = () => fetch(SRC + (SRC.includes("?") ? "&" : "?") + "t=" + Date.now(), { cache: "no-store" })
-    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-    .then((d) => { data = d; render(d); })
-    .catch(() => {
-      if (data) return;
-      $("#now").dataset.state = "na";
-      $("#now-label").textContent = "Не вдалося завантажити";
-      $("#now-since").innerHTML = 'Дивіться канал <a href="https://t.me/power_po2" style="color:inherit">@power_po2</a>';
-    });
-  load();
-  setInterval(load, 5 * 60e3);                         // нові дані — раз на 5 хв
-  setInterval(() => data && render(data), 30e3);       // «уже N хв» — щопівхвилини
+  Power.watch(render, () => {
+    $("#now").dataset.state = "na";
+    $("#now-label").textContent = "Не вдалося завантажити";
+    $("#now-since").innerHTML = 'Дивіться канал <a href="https://t.me/power_po2" style="color:inherit">@power_po2</a>';
+  });
 })();

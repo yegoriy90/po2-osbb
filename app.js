@@ -166,7 +166,7 @@
     t.people.map((p) => `<div class="person"><span>${esc(p.name)}</span><a href="${esc(p.tg)}" target="_blank" rel="noopener">Telegram ↗</a></div>`).join("") + "</div>").join("") + botCard;
 
   // ---------- Світло в шапці ----------
-  // Той самий power.json, що й на /svitlo/ (збирає GitHub Actions з каналу @power_po2).
+  // Дані — з power.js (API світлобота + історія power.json), як і на /svitlo/.
   const pwr = $("#pwr");
   // Київський час: ключ дня "YYYY-MM-DD" і "HH:MM" дня → мітка часу
   const TZ = "Europe/Kyiv";
@@ -199,14 +199,7 @@
     $(".pwr__next").dataset.short = short;
     pwr.title = (tip ? tip + ". " : "") + "Дані світлобота @power_po2";
   };
-  let pwrData = null;
-  const pwrLoad = () => fetch("https://raw.githubusercontent.com/yegoriy90/po2-osbb/power-data/power.json?t=" + Date.now(), { cache: "no-store" })
-    .then((r) => (r.ok ? r.json() : Promise.reject()))
-    .then((d) => { pwrData = d; pwrShow(d); })
-    .catch(() => {});
-  pwrLoad();
-  setInterval(pwrLoad, 5 * 60e3);
-  setInterval(() => pwrData && pwrShow(pwrData), 60e3);
+  Power.watch(pwrShow);
 
   // ---------- Поділитися ----------
   $("#share").onclick = async (e) => {
