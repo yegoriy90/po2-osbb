@@ -5,6 +5,11 @@ on:
   schedule:
     - cron: "*/10 * * * *"
   workflow_dispatch:
+    inputs:
+      full:
+        description: "Перезібрати всю історію (15 сторінок каналу)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -26,6 +31,8 @@ jobs:
 
       - name: Забрати пости
         run: python3 tools/power_fetch.py out/power.json
+        env:
+          FULL: ${{ inputs.full && '1' || '0' }}
 
       - name: Зберегти в power-data
         run: |

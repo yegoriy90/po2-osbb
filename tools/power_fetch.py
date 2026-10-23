@@ -13,6 +13,7 @@
 """
 import html
 import json
+import os
 import re
 import sys
 import urllib.request
@@ -103,13 +104,14 @@ def main(path, local=None):
             found = posts(f.read())
     else:
         before = None
-        for _ in range(BACKFILL_PAGES if not data["lastId"] else 3):
+        full = not data["lastId"] or os.environ.get("FULL") == "1"  # FULL=1 — перезібрати історію
+        for _ in range(BACKFILL_PAGES if full else 3):
             page = posts(fetch(before))
             if not page:
                 break
             found += page
             before = min(p[0] for p in page)
-            if before <= data["lastId"]:
+            if not full and before <= data["lastId"]:
                 break
 
     events = {e["id"]: e for e in data["events"]}
