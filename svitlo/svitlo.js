@@ -78,8 +78,9 @@
     const a = midnight(today), b = a + DAY;
     const t = bar(iv, a, b, sched[today]?.slots, now);
     // Екстрені: графік не діє, світло можуть вимкнути будь-коли — суцільна смуга на всю добу
-    const plan = emergency ? '<i class="emerg"><span>⚠ Екстрені відключення · графік не діє</span></i>' : t.plan;
-    $("#today").innerHTML = `<div class="pw-plan${emergency ? " pw-plan--emerg" : ""}">${plan}</div><div class="pw-bar">${t.bar}</div>
+    const plan = emergency ? '<i class="emerg"></i>' : t.plan;
+    const label = emergency ? '<p class="pw-emerg-label"><b>⚠ Екстрені відключення</b> графік не діє, світло можуть вимкнути будь-коли</p>' : "";
+    $("#today").innerHTML = `${label}<div class="pw-plan${emergency ? " pw-plan--emerg" : ""}">${plan}</div><div class="pw-bar">${t.bar}</div>
       <div class="pw-ticks"><span style="left:0">00</span><span style="left:25%">06</span><span style="left:50%">12</span><span style="left:75%">18</span><span style="left:100%">24</span></div>`;
     document.querySelector(".pw-legend .lg-emerg").hidden = !emergency;
     document.querySelector(".pw-legend .lg-plan").hidden = !!emergency;
