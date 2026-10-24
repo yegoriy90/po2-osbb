@@ -18,7 +18,9 @@ window.Power = (function () {
   const slot = (s) => {
     if (Array.isArray(s)) return [hhmm(s[0]), hhmm(s[1])];
     if (s && typeof s === "object") {
-      if (s.type && /possible|maybe/i.test(s.type)) return null; // «можливі» не показуємо як планові
+      // YASNO ділить усю добу на шматки: "Definite" — відключення, "NotPlanned" — світло є,
+      // "Possible" — можливе. Показуємо лише відключення (невідомий тип — теж, щоб не загубити графік).
+      if (s.type && !/definite|outage|off/i.test(s.type) && /not.?planned|possible|maybe|^on$|power.?on/i.test(s.type)) return null;
       return [hhmm(s.start ?? s.from), hhmm(s.end ?? s.to)];
     }
     return null;
