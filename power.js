@@ -27,7 +27,8 @@ window.Power = (function () {
   };
   const day = (d) => {
     const slots = (d.slots || []).map(slot).filter((x) => x && x[0] && x[1]);
-    return { slots, emergency: /emergency/i.test(d.status || ""), noOutages: !slots.length && !/emergency|waiting/i.test(d.status || "") };
+    const st = d.status || "";
+    return { slots, emergency: /emergency/i.test(st), waiting: /waiting/i.test(st), noOutages: !slots.length && !/emergency|waiting/i.test(st) };
   };
 
   let events = null, live = null, sched = null;

@@ -71,7 +71,7 @@
     const emergency = sched[today]?.emergency;
     $("#now-plan").classList.toggle("pw-now__plan--alert", !!emergency);
     $("#now-plan").textContent = emergency ? "⚠ Екстрені відключення"
-      : cur ? `За графіком зараз відключення до ${hmEnd(cur.e)}`
+      : cur ? (last && last.on ? `За графіком зараз відключення до ${hmEnd(cur.e)} — але світло поки є` : `За графіком світло має повернутися о ${hmEnd(cur.e)}`)
       : next ? `Наступне за графіком: ${key(next.s) === today ? "сьогодні" : "завтра"} ${hm(next.s)}–${hmEnd(next.e)}` : "";
 
     // ---- Сьогодні ----
@@ -98,7 +98,7 @@
       const total = s.slots.reduce((n, [x, y]) => n + ((y === "24:00" || y === "00:00" ? midnight(k) + DAY : at(k, y)) - at(k, x)), 0);
       return `<div class="pw-day-plan"><h3>${label}, ${weekday(midnight(k) + H)}</h3>
         ${s.emergency ? '<div class="pw-alert">🚨 Екстрені відключення — графіки не застосовуються</div>' : ""}
-        ${s.slots.length ? `<ul>${items}</ul><p>Усього за графіком: ${dur(total)}</p>` : `<p>${s.emergency ? "Графік не діє — світло можуть вимкнути будь-коли." : s.noOutages ? "Відключень не заплановано 🎉" : "Планових відключень немає."}</p>`}</div>`;
+        ${s.slots.length ? `<ul>${items}</ul><p>Усього за графіком: ${dur(total)}</p>` : `<p>${s.emergency ? "Графік не діє — світло можуть вимкнути будь-коли." : s.waiting ? "Графік ще не опублікували." : s.noOutages ? "Відключень не заплановано 🎉" : "Планових відключень немає."}</p>`}</div>`;
     };
     $("#sched").innerHTML = dayPlan(today, "Сьогодні") + dayPlan(tomorrow, "Завтра");
 
