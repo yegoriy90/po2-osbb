@@ -1,0 +1,12 @@
+# ТИМЧАСОВИЙ: перевірка формату графіка в API світлобота. Видалити після.
+name: probe
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          B=https://light.rmn.pp.ua/api
+          for p in "schedule/home" "power-status" "events?location=home&limit=6"; do
+            echo "################ /$p"; curl -sS -m 20 "$B/$p"; echo
+          done
