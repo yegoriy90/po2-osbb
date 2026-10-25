@@ -290,7 +290,9 @@ function dahCheck(d) {
   const r = d.number ? regRow_('квартира', d.number) : null;
   const current = r ? { status: r.status, area: r.area, owner: r.owner, phone: r.phone, dah: r.dah } : null;
   const match = r ? nameMatch_(d.name, r.owner) : 'нема в реєстрі';
-  const first = String(d.name || '').split(/\s+/).filter((w) => w.length > 2)[0] || '';
+  // у ДАХ ім'я записане як «Прізвище Ім'я» («К Андрій»): звертаємось на ім'я — друге слово; одне слово — без імені
+  const words = String(d.name || '').replace(/[.,]/g, ' ').split(/\s+/).filter(Boolean);
+  const first = words.length >= 2 && words[1].length > 1 ? words[1] : '';
   const hi = 'Вітаємо' + (first ? ', ' + first : '') + '! Дякуємо, що долучилися до ДАХ 🙌 ';
   const proof = 'надішліть, будь ласка, фото витягу з Державного реєстру речових прав або договору купівлі-продажу ' +
     '(сторінку з ПІБ, адресою і площею).';

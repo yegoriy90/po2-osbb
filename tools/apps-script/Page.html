@@ -249,6 +249,10 @@
     const owner = d.role === 'власник';
     $('dApprove').disabled = !owner || !c;
     $('dApprove').textContent = !owner ? 'Не власник — не вношу' : !c ? 'Квартири немає в реєстрі' : '✅ Внести: право власності + у ДАХ';
+    // не підтверджено реєстром — головна дія «надіслати повідомлення», внесення стає другорядним
+    $('dApprove').className = 'btn ' + (d.verdict === 'ok' ? 'btn--go' : 'btn--ghost');
+    $('dCopy').className = 'btn ' + (d.verdict === 'ok' ? 'btn--ghost' : 'btn--go');
+    if (owner && c && d.verdict !== 'ok') $('dApprove').textContent = 'Все одно внести (я перевірив документи)';
   };
   const goDah = () => {
     $('err').hidden = $('ok').hidden = true; $('busy').hidden = false; $('go').disabled = true;
