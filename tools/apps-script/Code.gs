@@ -131,10 +131,21 @@ function parseDocText_(raw) {
   const most = (arr) => { const c = {}; arr.forEach((x) => (c[x] = (c[x] || 0) + 1)); return Object.keys(c).sort((a, b) => c[b] - c[a])[0] || ''; };
   const all = (re) => { const out = []; let m; const g = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g'); while ((m = g.exec(t))) out.push(m); return out; };
 
-  const flat = all(/квартир[аиіу]\s*(?:№\s*)?(\d{1,3}(?:-\d)?)\b/i).map((m) => m[1]);
-  const nonres = all(/нежитлов\S*\s+приміщенн\S*\s*(?:№\s*)?(\d{1,4})\b/i).map((m) => m[1]);
+  // Номер: лише в межах рядка (інакше «Тип об'єкта: квартира» + цифри з наступного рядка дають хибний номер).
+  // OCR часто читає «№» як «Ne», «No», «N°». Сильний контекст — після адреси «2-В, квартира N» чи «власником квартири № N».
+  const NUM = "[ \\t]*(?:№|N[eoо°º]?\\.?)?[ \\t]*(\\d{1,3}(?:-\\d)?)(?!\\d|[.,]\\d|/)";
+  const score = {};
+  const add = (re, w, ok) => all(new RegExp(re, 'i')).forEach((m) => { if (!ok || ok(m[1])) score[m[1]] = (score[m[1]] || 0) + w; });
+  const okFlat = (n) => (+n.split('-')[0] >= 1 && +n.split('-')[0] <= 725);
+  add("2[ \\t]*[-–]?[ \\t]*[ВB][ \\t,]+(?:квартира|кв\\.)" + NUM, 5, okFlat);
+  add("власник\\S*[ \\t]+квартири" + NUM, 5, okFlat);
+  add("(?<!об'єкта:[ \\t]?)квартир[аиіу]" + NUM, 2, okFlat);
+  add("(?:^|[ \\t,(])кв\\." + NUM, 2, okFlat);
+  if (/управління\s+багатоквартирним/i.test(t)) add("договір" + NUM, 1, okFlat); // у договорах з УК № = № квартири
+  const flat = Object.keys(score).sort((a, b) => score[b] - score[a]);
+  const nonres = all(/нежитлов\S*[ \t]+приміщенн\S*[ \t]*(?:№|N[eoо°º]?\.?)?[ \t]*(\d{1,4})(?!\d)/i).map((m) => m[1]);
   const object_type = flat.length ? 'квартира' : nonres.length ? 'нежитлове' : 'невідомо';
-  const number = flat.length ? most(flat) : most(nonres);
+  const number = flat.length ? flat[0] : most(nonres);
 
   const areaM = t.match(/[Зз]агальна\s+площа\s*\(?\s*кв\.?\s*м\.?\s*\)?\s*:?\s*(\d{1,4}(?:[.,]\d{1,2})?)/) ||
     t.match(/(?:загальною\s+)?площею\s*(\d{1,4}(?:[.,]\d{1,2})?)\s*кв/i);
@@ -178,6 +189,7 @@ function parseDocText_(raw) {
 
   const problems = [];
   if (!number) problems.push('Не знайшов номер приміщення');
+  if (flat.length > 1) problems.push('У тексті різні номери: ' + flat.slice(0, 4).join(', ') + ' — взяв ' + number + ', звір із фото');
   if (!area_total) problems.push('Не знайшов площу');
   if (!ownersOut.length) problems.push('Не знайшов ПІБ власника');
   if (!addrM) problems.push('Не знайшов адресу');
