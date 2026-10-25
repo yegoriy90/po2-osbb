@@ -236,12 +236,13 @@ function claude_(images, schema, prompt) {
 const DAH_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['number', 'name', 'role', 'phone'],
+  required: ['number', 'name', 'role', 'phone', 'entrance'],
   properties: {
     number: { type: 'string', description: 'Номер квартири із заявки, напр. "165"; "" якщо не видно' },
     name: { type: 'string', description: 'Ім\'я заявника як у ДАХ (може бути скорочене, напр. "К Андрій")' },
     role: { type: 'string', enum: ['власник', 'користувач', 'орендар', 'невідомо'], description: 'Статус у ДАХ: власник/співвласник, користувач/мешканець, орендар/винаймач' },
     phone: { type: 'string', description: 'Телефон +380XXXXXXXXX; "" якщо не видно' },
+    entrance: { type: 'string', description: 'Номер під\'їзду, якщо вказано; "" якщо ні' },
   },
 };
 const DAH_PROMPT = 'Це скріни заявки з застосунку ДАХ (ЖК на вул. Воскресенська, 2-В, Київ). ' +
@@ -256,13 +257,21 @@ function parseDahText_(raw) {
   const roleLine = t.split('\n').map((x) => x.trim()).find((x) => /^(?:роль|статус)?\s*:?\s*(?:спів)?(?:власни|користувач|мешканець|орендар|винаймач|наймач)\S*$/i.test(x));
   const role = roleOf(roleLine || '') || roleOf(t) || 'невідомо';
   // Ім'я: повний ПІБ, якщо є; інакше рядок «К Андрій» / «Коваленко Андрій» (без назв кнопок і адрес)
+  // Ім'я: повний ПІБ, якщо є; інакше 2–3 слова з великої («Коваленко Андрій», «К Андрій») — найближчі перед телефоном
+  // (у ДАХ ім'я стоїть над номером; OCR може злити їх в один рядок). Назви кнопок і полів відкидаємо.
   let name = d.owners.length ? d.owners[0].name : '';
   if (!name) {
-    const line = t.split('\n').map((x) => x.trim()).find((x) =>
-      /^[А-ЯІЇЄҐ][а-яіїєґ'-]*\.?(?: [А-ЯІЇЄҐ][а-яіїєґ'-]+){1,2}$/.test(x) && !/Воскресенськ|Паркові|Озера|Київ|ДАХ|ОСББ/.test(x));
-    name = line || '';
+    const STOP = /^(?:Заявка|Власник|Співвласник|Користувач|Орендар|Під'?їзд|Квартира|Контакти|Нерухомість|Транспорт|Основний|Написати|Воскресенськ|Паркові|Озера|Київ|ДАХ|ОСББ)/;
+    const tel = d.phone ? t.search(/\+?\s*3\s*8\s*\(?\s*0/) : -1;
+    const re = /(?<![А-Яа-яІіЇїЄєҐґ'-])[А-ЯІЇЄҐ][а-яіїєґ'-]*\.?(?:[ \t]+[А-ЯІЇЄҐ][а-яіїєґ'-]+){1,2}(?![а-яіїєґ'-])/g;
+    const cands = [];
+    let m;
+    while ((m = re.exec(t))) if (!m[0].split(/\s+/).some((w) => STOP.test(w))) cands.push(m);
+    const before = cands.filter((c) => tel >= 0 && c.index < tel);
+    name = (before.length ? before[before.length - 1] : cands[0] || [''])[0];
   }
-  return { number: d.object_type === 'квартира' ? d.number : '', name, role, phone: d.phone };
+  const entM = t.match(/під'?\s*[ії]зд\S*\s*(?:№\s*)?(\d)(?!\d)/i);
+  return { number: d.object_type === 'квартира' ? d.number : '', name, role, phone: d.phone, entrance: entM ? entM[1] : '' };
 }
 
 /** Чи збігається ім'я з ДАХ («К Андрій») з власником у реєстрі («Коваленко Андрій Петрович»). */
@@ -288,6 +297,8 @@ function dahCheck(d) {
   const warnings = [];
   let verdict, message;
   if (!d.number) warnings.push('❗ Не видно номера квартири — впиши вручну');
+  const sec = d.number ? CFG.sections.filter((f) => parseInt(d.number, 10) >= f).length : 0;
+  if (d.entrance && sec && +d.entrance !== sec) warnings.push('❗ У ДАХ під\'їзд ' + d.entrance + ', а кв. ' + d.number + ' — секція ' + sec + ': перевір номер');
   else if (!r) warnings.push('❗ Кв. ' + d.number + ' немає в реєстрі');
   if (d.role !== 'власник') {
     verdict = 'not-owner';

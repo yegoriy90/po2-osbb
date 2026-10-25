@@ -257,7 +257,7 @@
   };
   // виправив № / статус / ім'я — перевіряємо ще раз
   ['dNumber', 'dRole', 'dName'].forEach((id) => $(id).addEventListener('change', () => {
-    const d = { number: $('dNumber').value.trim(), role: $('dRole').value, name: $('dName').value.trim() };
+    const d = { number: $('dNumber').value.trim(), role: $('dRole').value, name: $('dName').value.trim(), entrance: (dres && dres.entrance) || '' };
     call('dahCheck', d).then((x) => {
       showDah(Object.assign(d, x));
       if (x.current) { $('dArea').value = $('dArea').value || x.current.area || ''; if (x.match === 'так' && x.current.owner) $('dOwner').value = x.current.owner; }
