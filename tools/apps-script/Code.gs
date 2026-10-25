@@ -6,7 +6,8 @@
  *  • ?stats=1 — публічний JSON для po2.kyiv.ua: лише суми по секціях (без номерів і ПІБ),
  *    у форматі window.VOTES з votes.js.
  *
- * Розгортання й налаштування — tools/apps-script/README.md. Ключ — Script properties: ANTHROPIC_API_KEY.
+ * Розгортання й налаштування — tools/apps-script/README.md. Розпізнавання: безкоштовний OCR Google Drive
+ * (служба «Drive API») або Claude, якщо в Script properties є ANTHROPIC_API_KEY.
  */
 
 const CFG = {
@@ -67,8 +68,8 @@ function setup() {
     log.getRange(1, 1, 1, 11).setFontWeight('bold');
     log.setFrozenRows(1);
   }
-  if (!PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY')) {
-    SpreadsheetApp.getUi().alert('Додай ANTHROPIC_API_KEY: Налаштування проєкту → Властивості скрипту.');
+  if (typeof Drive === 'undefined' && !PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY')) {
+    SpreadsheetApp.getUi().alert('Для безкоштовного розпізнавання увімкни службу «Drive API» (Служби → ＋) або додай ANTHROPIC_API_KEY у властивості скрипту.');
   }
 }
 
@@ -113,8 +114,91 @@ const PROMPT = 'Це фото документів власника приміщ
 function analyze(images) {
   guard_();
   if (!images || !images.length) throw new Error('Немає фото');
-  const d = claude_(images.slice(0, 6));
+  const key = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
+  // Є ключ Claude — розпізнає Claude; немає — безкоштовний OCR Google Drive + розбір за шаблоном
+  const d = key ? claude_(images.slice(0, 6)) : ocrParse_(images.slice(0, 6));
+  d.engine = key ? 'claude' : 'ocr';
   return Object.assign(d, check_(d));
+}
+
+// ---------------------------------------------------------------- безкоштовний режим: OCR Google Drive
+
+/** Фото/PDF → текст через OCR Google Drive (потрібна служба «Drive API» у редакторі Apps Script). */
+function ocr_(im) {
+  const blob = Utilities.newBlob(Utilities.base64Decode(im.data), im.type, 'ocr');
+  const file = Drive.Files.create({ name: 'ocr-tmp', mimeType: MimeType.GOOGLE_DOCS }, blob, { ocrLanguage: 'uk' });
+  try {
+    return DocumentApp.openById(file.id).getBody().getText();
+  } finally {
+    DriveApp.getFileById(file.id).setTrashed(true);
+  }
+}
+
+function ocrParse_(images) {
+  if (typeof Drive === 'undefined') throw new Error('Увімкни службу «Drive API» у редакторі Apps Script (Служби → ＋)');
+  const d = parseDocText_(images.map(ocr_).join('\n\n'));
+  d.problems.push('Розпізнано безкоштовним OCR без ШІ — звір поля з фото');
+  return d;
+}
+
+/** Розбір тексту витягу / ДКП / договору з УК у формат SCHEMA. Лише шаблони, без ШІ. */
+function parseDocText_(raw) {
+  const t = raw.replace(/[ \t\u00a0]+/g, ' ').replace(/[’ʼ`]/g, "'");
+  const most = (arr) => { const c = {}; arr.forEach((x) => (c[x] = (c[x] || 0) + 1)); return Object.keys(c).sort((a, b) => c[b] - c[a])[0] || ''; };
+  const all = (re) => { const out = []; let m; const g = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g'); while ((m = g.exec(t))) out.push(m); return out; };
+
+  const flat = all(/квартир[аиіу]\s*(?:№\s*)?(\d{1,3}(?:-\d)?)\b/i).map((m) => m[1]);
+  const nonres = all(/нежитлов\S*\s+приміщенн\S*\s*(?:№\s*)?(\d{1,4})\b/i).map((m) => m[1]);
+  const object_type = flat.length ? 'квартира' : nonres.length ? 'нежитлове' : 'невідомо';
+  const number = flat.length ? most(flat) : most(nonres);
+
+  const areaM = t.match(/[Зз]агальна\s+площа\s*\(?\s*кв\.?\s*м\.?\s*\)?\s*:?\s*(\d{1,4}(?:[.,]\d{1,2})?)/) ||
+    t.match(/(?:загальною\s+)?площею\s*(\d{1,4}(?:[.,]\d{1,2})?)\s*кв/i);
+  const area_total = areaM ? areaM[1].replace(',', '.') : '';
+
+  const documents = [];
+  if (/витяг/i.test(t)) documents.push('витяг з реєстру речових прав');
+  if (/купівлі[-\s]*продажу/i.test(t)) documents.push('договір купівлі-продажу');
+  if (/свідоцтв\S*\s+про\s+право\s+власності/i.test(t)) documents.push('свідоцтво про право власності');
+  if (/управління\s+багатоквартирним/i.test(t)) documents.push('договір з УК');
+  if (/інвестиц|попередн\S*\s+договір/i.test(t)) documents.push('інвестиційний/попередній договір');
+  if (!documents.length) documents.push('інше');
+
+  const owns = /Тип\s+речового\s+права\s*:?\s*право\s+власності/i.test(t) || /свідоцтв\S*\s+про\s+право\s+власності/i.test(t) ||
+    /купівлі[-\s]*продажу/i.test(t) || /є\s+власником/i.test(t);
+  const right_type = owns ? 'право власності' : /інвестиц|попередн/i.test(t) ? 'інвестиційний договір' : 'невідомо';
+
+  // ПІБ: три слова з великої, по батькові на -вич/-вна; без нотаріусів, реєстраторів і представників УК
+  const W = "[А-ЯІЇЄҐ][а-яіїєґ'-]+";
+  // \b у JS не бачить кирилиці — кінець слова перевіряємо явно
+  const fio = new RegExp(W + '\\s+' + W + '\\s+' + "[А-ЯІЇЄҐ][а-яіїєґ'-]+(?:вич|вна|ич|на)(?![а-яіїєґ'-])", 'g');
+  const owners = [];
+  let m;
+  while ((m = fio.exec(t))) {
+    const before = t.slice(Math.max(0, m.index - 80), m.index).toLowerCase();
+    if (/нотаріус|реєстратор|представник|в особі|директор|довіреніст/.test(before)) continue;
+    const ctx = /власник|суб'єкт|та\s*$|покупець/.test(before);
+    if (!owners.some((o) => o.name === m[0])) owners.push({ name: m[0], share: '', source: ctx ? 'біля «власник/суб\'єкт»' : 'текст документа', ctx });
+  }
+  owners.sort((a, b) => b.ctx - a.ctx);
+  const ownersOut = owners.slice(0, 2).map(({ name, share, source }) => ({ name, share, source }));
+
+  const addrM = t.match(/Воскресенськ\S*[\s,]+(?:буд\S*\s*)?(?:№\s*)?2\s*[-–]?\s*([ВвBbАаAa])(?![а-яіїєґa-z])/) ||
+    t.match(/буд\S*\s*(?:№\s*)?2\s*[-–]?\s*([ВвBbАаAa])(?![а-яіїєґa-z])[^\n]{0,30}?Воскресенськ/); // «буд. № 2-В по вул. Воскресенській»
+  const address = addrM ? addrM[0] : '';
+  const address_matches = !!addrM && /[ВвBb]/.test(addrM[1]);
+
+  const dateM = t.match(/державної\s+реєстрації\s*:?\s*(\d{2}\.\d{2}\.\d{4})/i) || t.match(/продажу[^.\n]{0,40}?від\s*(\d{2}\.\d{2}\.\d{4})/i) ||
+    t.match(/(\d{2}\.\d{2}\.\d{4})/);
+  const registration_date = dateM ? dateM[1] : '';
+
+  const problems = [];
+  if (!number) problems.push('Не знайшов номер приміщення');
+  if (!area_total) problems.push('Не знайшов площу');
+  if (!ownersOut.length) problems.push('Не знайшов ПІБ власника');
+  if (!addrM) problems.push('Не знайшов адресу');
+  if (ownersOut.length > 1) problems.push('Кілька ПІБ у тексті — перевір, хто власник');
+  return { object_type, number, area_total, owners: ownersOut, right_type, documents, address, address_matches, registration_date, problems };
 }
 
 function claude_(images) {
