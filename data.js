@@ -12,7 +12,7 @@ window.SITE = {
 
   // Живі цифри з реєстру: URL веб-застосунку Apps Script + "?stats=1" (tools/apps-script/README.md).
   // Порожньо — сайт бере votes.js.
-  statsUrl: "",
+  statsUrl: "https://script.google.com/macros/s/AKfycby2ute45O4Fe5KeP90P29oZyfoOiBGD9cGvk3X7UwSIERiZWt_OjBirrTm7ONjSA-ot/exec?stats=1",
 
   dahUrl: "https://app.dah.in.ua/oNCk",
   dahBuilding: "Воскресенська 2В",
