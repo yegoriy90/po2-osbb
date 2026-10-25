@@ -10,6 +10,10 @@ window.SITE = {
   threshold: 0.5,
   avgArea: 59, // м², середня площа квартир, яких ще немає в ДАХ (з реєстру)
 
+  // Живі цифри з реєстру: URL веб-застосунку Apps Script + "?stats=1" (tools/apps-script/README.md).
+  // Порожньо — сайт бере votes.js.
+  statsUrl: "",
+
   dahUrl: "https://app.dah.in.ua/oNCk",
   dahBuilding: "Воскресенська 2В",
   botUrl: "https://t.me/PO2KYIVBOT",

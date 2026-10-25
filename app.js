@@ -118,6 +118,12 @@
   const town = $("#town");
   let shareText = "";
   render(window.VOTES);
+  // Живі цифри з реєстру (Google Apps Script, ?stats=1) — лише суми по секціях; якщо недоступно, лишається votes.js
+  if (S.statsUrl) {
+    fetch(S.statsUrl).then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((v) => v && Array.isArray(v.sections) && v.sections.length === S.sections.length && v.dahArea > 0 && render(v))
+      .catch(() => {});
+  }
 
   // Парк позаду і озеро попереду
   let seed = 7;
