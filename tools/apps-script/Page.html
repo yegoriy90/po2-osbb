@@ -123,6 +123,7 @@
 <script>
   const $ = (id) => document.getElementById(id);
   let images = [], result = null, lastPct = null, mode = 'docs', dres = null;
+  const dahPhones = {}; // телефон із заявки ДАХ → підставимо, коли прийдуть документи на ту саму квартиру
   const esc = (w) => String(w).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   const warnHtml = (list) => list.map((w) => `<li class="${w.startsWith('❗') ? 'bad' : ''}">${esc(w)}</li>`).join('');
 
@@ -199,7 +200,7 @@
       $('type').value = d.object_type; $('number').value = d.number; $('area').value = d.area_total;
       $('owner').value = d.owners.map((o) => o.name + (o.share && o.share !== '1/1' ? ' (' + o.share + ')' : '')).join('; ');
       $('right').value = d.right_type; $('date').value = d.registration_date; $('docs').value = d.documents.join(', ');
-      $('phone').value = d.phone || (d.current && d.current.phone) || '';
+      $('phone').value = d.phone || dahPhones[d.number] || (d.current && d.current.phone) || '';
       $('warn').innerHTML = warnHtml(d.warnings);
       const c = d.current;
       $('now').textContent = c ? `Зараз у реєстрі: ${c.status || '—'} · ${c.area ? c.area + ' м²' : 'без площі'} · ${c.owner || 'без ПІБ'} · ${c.dah || ''}` : 'У реєстрі не знайдено';
@@ -259,6 +260,7 @@
     $('busyText').textContent = 'Розпізнаю скрін… ~15 с';
     call('analyzeDah', images.map(({ type, data }) => ({ type, data }))).then((d) => {
       $('busy').hidden = true; $('go').disabled = false; $('step2dah').hidden = false;
+      if (d.number && d.phone) dahPhones[d.number] = d.phone;
       $('dNumber').value = d.number; $('dRole').value = d.role; $('dName').value = d.name;
       const c = d.current;
       // ПІБ і площа: з реєстру, якщо власник збігається (там повний ПІБ); інакше — як у ДАХ

@@ -149,8 +149,11 @@ function parseDocText_(raw) {
   const object_type = flat.length ? 'квартира' : nonres.length ? 'нежитлове' : 'невідомо';
   const number = flat.length ? flat[0] : most(nonres);
 
+  // «Загальна площа (кв.м): 62», «загальною площею – 78,7 (сімдесят вісім…) кв.м», «площею 62,0 кв.м»; житлову не беремо
+  const AREA = "[\\s:–—-]*(\\d{1,4}(?:[.,]\\d{1,2})?)(?![\\d.,]\\d)";
   const areaM = t.match(/[Зз]агальна\s+площа\s*\(?\s*кв\.?\s*м\.?\s*\)?\s*:?\s*(\d{1,4}(?:[.,]\d{1,2})?)/) ||
-    t.match(/(?:загальною\s+)?площею\s*(\d{1,4}(?:[.,]\d{1,2})?)\s*кв/i);
+    t.match(new RegExp('загальн\\S*\\s+площ\\S*' + AREA, 'i')) ||
+    t.match(new RegExp('(?<!житлов\\S*\\s)площею' + AREA + '\\s*(?:\\([^)]{0,80}\\)\\s*)?кв', 'i'));
   const area_total = areaM ? areaM[1].replace(',', '.') : '';
 
   const documents = [];
@@ -180,13 +183,14 @@ function parseDocText_(raw) {
   owners.sort((a, b) => b.ctx - a.ctx);
   const ownersOut = owners.slice(0, 2).map(({ name, share, source }) => ({ name, share, source }));
 
-  const addrM = t.match(/Воскресенськ\S*[\s,]+(?:буд\S*\s*)?(?:№\s*)?2\s*[-–]?\s*([ВвBbАаAa])(?![а-яіїєґa-z])/) ||
-    t.match(/буд\S*\s*(?:№\s*)?2\s*[-–]?\s*([ВвBbАаAa])(?![а-яіїєґa-z])[^\n]{0,30}?Воскресенськ/); // «буд. № 2-В по вул. Воскресенській»
+  // OCR: «№» → «Ne»/«No», «В» → латинська «B»
+  const addrM = t.match(/Воскресенськ\S*[\s,]+(?:буд\S*\s*)?(?:№|N[eoо°º]?\.?)?\s*2\s*[-–—]?\s*([ВвBbАаAa])(?![а-яіїєґa-z])/) ||
+    t.match(/буд\S*\s*(?:№|N[eoо°º]?\.?)?\s*2\s*[-–—]?\s*([ВвBbАаAa])(?![а-яіїєґa-z])[^\n]{0,30}?Воскресенськ/); // «буд. № 2-В по вул. Воскресенській»
   const address = addrM ? addrM[0] : '';
   const address_matches = !!addrM && /[ВвBb]/.test(addrM[1]);
 
   const dateM = t.match(/державної\s+реєстрації\s*:?\s*(\d{2}\.\d{2}\.\d{4})/i) || t.match(/продажу[^.\n]{0,40}?від\s*(\d{2}\.\d{2}\.\d{4})/i) ||
-    t.match(/(\d{2}\.\d{2}\.\d{4})/);
+    (/купівлі[-\s]*продажу/i.test(t) ? null : t.match(/(\d{2}\.\d{2}\.\d{4})/)); // у ДКП перша дата — зазвичай угода продавця
   const registration_date = dateM ? dateM[1] : '';
 
   // Телефон (скрін картки власника в ДАХ): +380 99 644 08 07, 099-644-08-07, (099) 6440807
