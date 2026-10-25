@@ -3,6 +3,7 @@
  *
  *  • Сторінка (Page.html) — лише для власника таблиці: фото документів → Claude розпізнає →
  *    форма з даними й попередженнями → «Підтвердити» → запис у реєстр, лог «Заявки», фото на Drive.
+ *  • Під таблицю registry_v10 (Google-таблиця): «в ДАХ» — колонка G реєстру і E нежитлових, значеннями.
  *  • ?stats=1 — публічний JSON для po2.kyiv.ua: лише суми по секціях (без номерів і ПІБ),
  *    у форматі window.VOTES з votes.js.
  *
@@ -15,9 +16,8 @@ const CFG = {
   apiVersion: '2026-10-21',
   base: 50258.3,                 // база ОСББ, м² (квартири + нежитлові)
   sections: [1, 211, 367, 477],  // перші квартири секцій (як у data.js)
-  apts: 'Реєстр мешканців',      // A №, B площа, C власник, D телефон, F статус, G ДАХ (формула), L ДАХ вручну; дані з 4-го рядка
-  nonres: 'Нежитлові приміщення', // A №, B площа, C власник, D категорія, E ДАХ (формула), F ДАХ вручну; дані з 3-го рядка
-  export: 'ДАХ експорт',
+  apts: 'Реєстр мешканців',      // A №, B площа, C власник, D телефон, E Telegram, F статус, G ДАХ («✅ У ДАХ»/«❌ Не в ДАХ»); дані з 4-го рядка
+  nonres: 'Нежитлові приміщення', // A №, B площа, C власник, D категорія, E ДАХ; дані з 3-го рядка
   log: 'Заявки',
   folder: 'ДАХ документи',
 };
@@ -43,27 +43,11 @@ function guard_() { if (!isOwner_()) throw new Error('Немає доступу'
 
 // ---------------------------------------------------------------- налаштування
 
-/** Запусти один раз: колонки «ДАХ вручну», формули «ДАХ» з урахуванням ручної позначки, лог «Заявки». */
+/** Запусти один раз: створить аркуш-лог «Заявки». */
 function setup() {
   const ss = SpreadsheetApp.getActive();
-  const patch = (name, first, dahCol, manCol) => {
-    const sh = ss.getSheetByName(name);
-    sh.getRange(first - 1, manCol).setValue('ДАХ вручну').setFontWeight('bold');
-    const last = Math.max(sh.getLastRow(), first);
-    const ML = sh.getRange(1, manCol).getA1Notation().replace(/\d+/, '');
-    const A = (r) => '$A' + r, M = (r) => '$' + ML + r;
-    const f = [];
-    for (let r = first; r <= last + 200; r++) {
-      f.push([`=IF(${A(r)}="","",IF(OR(${M(r)}=TRUE,COUNTIFS('${CFG.export}'!$N:$N,${A(r)}&"",'${CFG.export}'!$I:$I,"<>")>0),"${IN_DAH}","❌ Не в ДАХ"))`]);
-    }
-    sh.getRange(first, dahCol, f.length, 1).setFormulas(f);
-    sh.getRange(first, manCol, f.length, 1).insertCheckboxes();
-  };
-  patch(CFG.apts, 4, 7, 12);  // G ← L
-  patch(CFG.nonres, 3, 5, 6); // E ← F
-  let log = ss.getSheetByName(CFG.log);
-  if (!log) {
-    log = ss.insertSheet(CFG.log);
+  if (!ss.getSheetByName(CFG.log)) {
+    const log = ss.insertSheet(CFG.log);
     log.appendRow(['Коли', 'Тип', '№', 'Площа', 'ПІБ', 'Телефон', 'Документи', 'Право', 'Дата реєстрації', 'Попередження', 'Фото']);
     log.getRange(1, 1, 1, 11).setFontWeight('bold');
     log.setFrozenRows(1);
@@ -281,7 +265,12 @@ function approve(f) {
     const set = (col, v) => r.sheet.getRange(r.row, col).setValue(v);
     if (f.area) set(2, Number(String(f.area).replace(',', '.')));
     if (f.owner) set(3, f.owner);
-    if (r.nonres) { set(4, OWNER); set(6, true); } else { if (f.phone) set(4, f.phone); set(6, OWNER); set(12, true); }
+    if (r.nonres) { set(4, OWNER); set(5, IN_DAH); } else {
+      if (f.phone) set(4, f.phone);
+      set(6, OWNER);
+      set(7, IN_DAH);
+      r.sheet.getRange(r.row, 1, 1, 9).setBackground('#C6EFCE'); // як автофарбування «Право власності»
+    }
     const link = savePhotos_(f.type + ' ' + f.number, f.images || []);
     SpreadsheetApp.getActive().getSheetByName(CFG.log).appendRow([new Date(), f.type, f.number, f.area, f.owner, f.phone || '',
       (f.documents || []).join(', '), f.right, f.date, (f.warnings || []).join('\n'), link]);
