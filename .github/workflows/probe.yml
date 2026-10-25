@@ -1,0 +1,10 @@
+# ТИМЧАСОВИЙ: перевірка ?stats=1 Apps Script. Видалити після.
+name: probe
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          U="https://script.google.com/macros/s/AKfycby2ute45O4Fe5KeP90P29oZyfoOiBGD9cGvk3X7UwSIERiZWt_OjBirrTm7ONjSA-ot/exec"
+          curl -sS -L -m 30 "$U?stats=1"; echo

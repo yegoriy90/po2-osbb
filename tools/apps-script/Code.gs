@@ -62,7 +62,7 @@ function setup() {
 const SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['object_type', 'number', 'area_total', 'owners', 'right_type', 'documents', 'address', 'address_matches', 'registration_date', 'problems'],
+  required: ['object_type', 'number', 'area_total', 'owners', 'right_type', 'documents', 'address', 'address_matches', 'registration_date', 'phone', 'problems'],
   properties: {
     object_type: { type: 'string', enum: ['квартира', 'нежитлове', 'паркомісце', 'невідомо'] },
     number: { type: 'string', description: 'Номер квартири/приміщення як у документі, напр. "165" або "337-1"; "" якщо не видно' },
@@ -80,6 +80,7 @@ const SCHEMA = {
     address: { type: 'string' },
     address_matches: { type: 'boolean', description: 'Адреса — Київ, вул. Воскресенська, 2-В (або 2В)' },
     registration_date: { type: 'string', description: 'Дата державної реєстрації права або договору, ДД.ММ.РРРР; "" якщо не видно' },
+    phone: { type: 'string', description: 'Телефон власника, якщо є на фото (напр. скрін картки в ДАХ), у форматі +380XXXXXXXXX; "" якщо нема' },
     problems: { type: 'array', items: { type: 'string' }, description: 'Що не видно, не збігається між документами або викликає сумнів. Коротко, українською.' },
   },
 };
@@ -187,6 +188,10 @@ function parseDocText_(raw) {
     t.match(/(\d{2}\.\d{2}\.\d{4})/);
   const registration_date = dateM ? dateM[1] : '';
 
+  // Телефон (скрін картки власника в ДАХ): +380 99 644 08 07, 099-644-08-07, (099) 6440807
+  const telM = t.match(/(?<![\d\/])(?:\+?\s*3\s*8\s*)?\(?\s*0\s*\d{2}\s*\)?[\s-]*\d{3}[\s-]*\d{2}[\s-]*\d{2}(?!\d)/);
+  const phone = telM ? '+38' + telM[0].replace(/\D/g, '').replace(/^3?8?/, '') : '';
+
   const problems = [];
   if (!number) problems.push('Не знайшов номер приміщення');
   if (flat.length > 1) problems.push('У тексті різні номери: ' + flat.slice(0, 4).join(', ') + ' — взяв ' + number + ', звір із фото');
@@ -194,7 +199,7 @@ function parseDocText_(raw) {
   if (!ownersOut.length) problems.push('Не знайшов ПІБ власника');
   if (!addrM) problems.push('Не знайшов адресу');
   if (ownersOut.length > 1) problems.push('Кілька ПІБ у тексті — перевір, хто власник');
-  return { object_type, number, area_total, owners: ownersOut, right_type, documents, address, address_matches, registration_date, problems };
+  return { object_type, number, area_total, owners: ownersOut, right_type, documents, address, address_matches, registration_date, phone, problems };
 }
 
 function claude_(images) {
