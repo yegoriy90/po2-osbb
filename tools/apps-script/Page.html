@@ -20,6 +20,7 @@
   .drop { display: block; border: 2px dashed #cfd8c3; border-radius: 14px; padding: 22px; text-align: center; cursor: pointer; color: var(--muted); }
   .drop b { display: block; color: var(--green-d); font-size: 1.05rem; margin-bottom: 4px; }
   .drop input { display: none; }
+  .drop.over { border-color: var(--green); background: var(--green-bg); color: var(--green-d); }
   .thumbs { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
   .thumbs div { position: relative; }
   .thumbs img, .thumbs .pdf { width: 76px; height: 76px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); display: grid; place-items: center; font-size: .8rem; background: #f3f1ea; }
@@ -66,6 +67,7 @@
     <label class="drop">
       <b id="dropTitle">📷 Додати фото документів</b>
       <span id="dropHint">витяг, ДКП, договір з УК — можна кілька фото одного власника</span>
+      <small style="display:block;margin-top:6px;opacity:.8">натисни, перетягни файли сюди або встав скрін (Cmd+V)</small>
       <input type="file" id="files" accept="image/*,application/pdf" multiple>
     </label>
     <div class="thumbs" id="thumbs"></div>
@@ -172,12 +174,20 @@
     $('go').disabled = !images.length;
   };
   $('thumbs').onclick = (e) => { if (e.target.dataset.i) { images.splice(+e.target.dataset.i, 1); drawThumbs(); } };
-  $('files').onchange = async (e) => {
+  const addFiles = async (files) => {
+    files = [...files].filter((f) => /^image\/|pdf$/.test(f.type));
+    if (!files.length) return;
     $('err').hidden = $('ok').hidden = true;
-    try { images = images.concat(await Promise.all([...e.target.files].map(shrink))).slice(0, 6); drawThumbs(); }
+    try { images = images.concat(await Promise.all(files.map(shrink))).slice(0, 6); drawThumbs(); }
     catch (x) { err(x); }
-    e.target.value = '';
   };
+  $('files').onchange = async (e) => { await addFiles(e.target.files); e.target.value = ''; };
+  // перетягування файлів у зону (і будь-куди на сторінку) та вставка скріна з буфера (Cmd/Ctrl+V)
+  const drop = document.querySelector('.drop');
+  ['dragenter', 'dragover'].forEach((ev) => document.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach((ev) => document.addEventListener(ev, (e) => { e.preventDefault(); if (ev === 'drop' || !e.relatedTarget) drop.classList.remove('over'); }));
+  document.addEventListener('drop', (e) => addFiles(e.dataTransfer.files));
+  document.addEventListener('paste', (e) => { if (e.target.closest('input, textarea')) return; addFiles([...e.clipboardData.items].map((i) => i.getAsFile()).filter(Boolean)); });
 
   // ---- розпізнавання
   $('go').onclick = () => {
