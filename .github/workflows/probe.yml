@@ -1,0 +1,11 @@
+# ТИМЧАСОВИЙ: перевірка ?stats=1 Apps Script. Видалити після.
+name: probe
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          U="https://script.google.com/macros/s/AKfycby2ute45O4Fe5KeP90P29oZyfoOiBGD9cGvk3X7UwSIERiZWt_OjBirrTm7ONjSA-ot/exec"
+          echo "### stats"; curl -sS -L -m 30 -H "Origin: https://po2.kyiv.ua" -D - "$U?stats=1" | grep -iE "^HTTP|access-control|content-type|^\{" ; echo
+          echo "### page (без логіну має бути 'Доступ лише…')"; curl -sS -L -m 30 "$U" | grep -o "Доступ лише[^<]*" | head -1
