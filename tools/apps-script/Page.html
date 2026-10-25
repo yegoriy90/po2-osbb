@@ -40,6 +40,14 @@
   .msg--err { background: var(--red-bg); color: var(--red); }
   .spin { display: inline-block; width: 18px; height: 18px; border: 3px solid #cfe1bf; border-top-color: var(--green); border-radius: 50%; animation: s 1s linear infinite; vertical-align: -3px; margin-right: 8px; }
   @keyframes s { to { transform: rotate(360deg); } }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: #f1ede2; border-radius: 14px; padding: 4px; margin-bottom: 12px; }
+  .tabs button { border: 0; border-radius: 10px; padding: 10px 6px; font: 700 .95rem system-ui, sans-serif; background: transparent; color: var(--muted); cursor: pointer; }
+  .tabs button.on { background: #fff; color: var(--green-d); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .verdict { border-radius: 12px; padding: 10px 12px; font-weight: 700; margin-bottom: 8px; }
+  .verdict--ok { background: var(--green-bg); color: var(--green-d); }
+  .verdict--warn { background: var(--amber-bg); color: var(--amber); }
+  .verdict--bad { background: var(--red-bg); color: var(--red); }
+  textarea { display: block; width: 100%; margin-top: 3px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font: .95rem/1.45 system-ui, sans-serif; resize: vertical; }
   [hidden] { display: none !important; }
 </style>
 </head>
@@ -54,9 +62,10 @@
   </div>
 
   <div class="card" id="step1">
+    <div class="tabs"><button class="on" data-mode="docs">📄 Документи</button><button data-mode="dah">📱 Заявка з ДАХ</button></div>
     <label class="drop">
-      <b>📷 Додати фото документів</b>
-      витяг, ДКП, договір з УК — можна кілька фото одного власника
+      <b id="dropTitle">📷 Додати фото документів</b>
+      <span id="dropHint">витяг, ДКП, договір з УК — можна кілька фото одного власника</span>
       <input type="file" id="files" accept="image/*,application/pdf" multiple>
     </label>
     <div class="thumbs" id="thumbs"></div>
@@ -87,11 +96,43 @@
     <button class="btn btn--go" id="approve">✅ Підтвердити і внести</button>
     <button class="btn btn--ghost" id="cancel">Скасувати</button>
   </div>
+
+  <div class="card" id="step2dah" hidden>
+    <div class="verdict" id="dVerdict"></div>
+    <ul class="warn" id="dWarn"></ul>
+    <div class="row">
+      <label class="f">№ квартири<input id="dNumber" inputmode="numeric"></label>
+      <label class="f">Статус у ДАХ<select id="dRole"><option>власник</option><option>користувач</option><option>орендар</option><option>невідомо</option></select></label>
+    </div>
+    <label class="f">Ім'я в ДАХ<input id="dName"></label>
+    <div class="now" id="dNow"></div>
+    <label class="f">ПІБ для реєстру (повністю)<input id="dOwner"></label>
+    <div class="row">
+      <label class="f">Площа, м²<input id="dArea" inputmode="decimal"></label>
+      <label class="f">Телефон<input id="dPhone" inputmode="tel"></label>
+    </div>
+    <label class="f">Повідомлення заявнику в ДАХ<textarea id="dMsg" rows="6"></textarea></label>
+    <button class="btn btn--ghost" id="dCopy">📋 Скопіювати повідомлення</button>
+    <button class="btn btn--go" id="dApprove">✅ Внести: право власності + у ДАХ</button>
+    <button class="btn btn--ghost" id="dCancel">Скасувати</button>
+  </div>
 </div>
 
 <script>
   const $ = (id) => document.getElementById(id);
-  let images = [], result = null, lastPct = null;
+  let images = [], result = null, lastPct = null, mode = 'docs', dres = null;
+  const esc = (w) => String(w).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const warnHtml = (list) => list.map((w) => `<li class="${w.startsWith('❗') ? 'bad' : ''}">${esc(w)}</li>`).join('');
+
+  // ---- режим: документи / заявка з ДАХ
+  document.querySelector('.tabs').onclick = (e) => {
+    const m = e.target.dataset.mode; if (!m || m === mode) return;
+    mode = m; document.querySelectorAll('.tabs button').forEach((b) => b.classList.toggle('on', b.dataset.mode === m));
+    $('dropTitle').textContent = m === 'dah' ? '📱 Додати скрін заявки з ДАХ' : '📷 Додати фото документів';
+    $('dropHint').textContent = m === 'dah' ? 'картка заявника: ім\'я, № квартири, статус, телефон (можна 2–3 скріни)' : 'витяг, ДКП, договір з УК — можна кілька фото одного власника';
+    $('step2').hidden = $('step2dah').hidden = $('err').hidden = $('ok').hidden = true;
+    images = []; drawThumbs();
+  };
 
   const fmtPct = (s) => (s.dahArea / s.baseArea * 100).toFixed(1).replace('.', ',') + '%';
   const showStats = (s) => {
@@ -140,6 +181,7 @@
 
   // ---- розпізнавання
   $('go').onclick = () => {
+    if (mode === 'dah') return goDah();
     $('err').hidden = $('ok').hidden = true; $('busy').hidden = false; $('go').disabled = true;
     $('busyText').textContent = 'Розпізнаю документи… ~20 с';
     call('analyze', images.map(({ type, data }) => ({ type, data }))).then((d) => {
@@ -148,7 +190,7 @@
       $('owner').value = d.owners.map((o) => o.name + (o.share && o.share !== '1/1' ? ' (' + o.share + ')' : '')).join('; ');
       $('right').value = d.right_type; $('date').value = d.registration_date; $('docs').value = d.documents.join(', ');
       $('phone').value = d.phone || (d.current && d.current.phone) || '';
-      $('warn').innerHTML = d.warnings.map((w) => `<li class="${w.startsWith('❗') ? 'bad' : ''}">${w.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))}</li>`).join('');
+      $('warn').innerHTML = warnHtml(d.warnings);
       const c = d.current;
       $('now').textContent = c ? `Зараз у реєстрі: ${c.status || '—'} · ${c.area ? c.area + ' м²' : 'без площі'} · ${c.owner || 'без ПІБ'} · ${c.dah || ''}` : 'У реєстрі не знайдено';
       checkApprove();
@@ -178,6 +220,70 @@
     }).catch((x) => { err(x); checkApprove(); });
   };
   $('cancel').onclick = () => { $('step2').hidden = true; result = null; };
+
+  // ---- заявка з ДАХ
+  const VERDICT = {
+    ok: ['verdict--ok', '✅ Власник збігається з реєстром — можна вносити'],
+    confirm: ['verdict--warn', '🟡 ПІБ збігається, але право власності в реєстрі не підтверджене документом'],
+    proof: ['verdict--warn', '🟡 Не збігається з реєстром — попроси документ (повідомлення нижче)'],
+    'not-owner': ['verdict--bad', '⛔ Не власник — голос не рахується. Надішли повідомлення нижче'],
+  };
+  const showDah = (d) => {
+    dres = d;
+    const [cls, txt] = VERDICT[d.verdict] || VERDICT.proof;
+    $('dVerdict').className = 'verdict ' + cls; $('dVerdict').textContent = txt;
+    $('dWarn').innerHTML = warnHtml(d.warnings);
+    const c = d.current;
+    $('dNow').textContent = c ? `У реєстрі: ${c.owner || 'без ПІБ'} · ${c.status || '—'} · ${c.area ? c.area + ' м²' : 'без площі'} · ${c.dah || ''}` : 'У реєстрі не знайдено';
+    $('dMsg').value = d.message || '';
+    const owner = d.role === 'власник';
+    $('dApprove').disabled = !owner || !c;
+    $('dApprove').textContent = !owner ? 'Не власник — не вношу' : !c ? 'Квартири немає в реєстрі' : '✅ Внести: право власності + у ДАХ';
+  };
+  const goDah = () => {
+    $('err').hidden = $('ok').hidden = true; $('busy').hidden = false; $('go').disabled = true;
+    $('busyText').textContent = 'Розпізнаю скрін… ~15 с';
+    call('analyzeDah', images.map(({ type, data }) => ({ type, data }))).then((d) => {
+      $('busy').hidden = true; $('go').disabled = false; $('step2dah').hidden = false;
+      $('dNumber').value = d.number; $('dRole').value = d.role; $('dName').value = d.name;
+      const c = d.current;
+      // ПІБ і площа: з реєстру, якщо власник збігається (там повний ПІБ); інакше — як у ДАХ
+      $('dOwner').value = c && c.owner && d.match === 'так' ? c.owner : d.name;
+      $('dArea').value = (c && c.area) || '';
+      $('dPhone').value = d.phone || (c && c.phone) || '';
+      showDah(d);
+      $('step2dah').scrollIntoView({ behavior: 'smooth' });
+    }).catch((x) => { err(x); $('go').disabled = false; });
+  };
+  // виправив № / статус / ім'я — перевіряємо ще раз
+  ['dNumber', 'dRole', 'dName'].forEach((id) => $(id).addEventListener('change', () => {
+    const d = { number: $('dNumber').value.trim(), role: $('dRole').value, name: $('dName').value.trim() };
+    call('dahCheck', d).then((x) => {
+      showDah(Object.assign(d, x));
+      if (x.current) { $('dArea').value = $('dArea').value || x.current.area || ''; if (x.match === 'так' && x.current.owner) $('dOwner').value = x.current.owner; }
+    }).catch(err);
+  }));
+  $('dCopy').onclick = () => {
+    const t = $('dMsg'); t.select();
+    (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject()).catch(() => document.execCommand('copy'));
+    $('dCopy').textContent = '✓ Скопійовано'; setTimeout(() => ($('dCopy').textContent = '📋 Скопіювати повідомлення'), 1500);
+  };
+  $('dApprove').onclick = () => {
+    if (dres.verdict !== 'ok' && !confirm('Власник не підтверджений реєстром однозначно. Все одно внести «Право власності» + «У ДАХ»?')) return;
+    $('dApprove').disabled = true; $('busy').hidden = false; $('busyText').textContent = 'Вношу в реєстр…';
+    const num = $('dNumber').value.trim();
+    call('approve', {
+      type: 'квартира', number: num, area: $('dArea').value.trim(), owner: $('dOwner').value.trim(), phone: $('dPhone').value.trim(),
+      right: 'право власності', date: '', documents: ['заявка ДАХ (' + $('dRole').value + ', збіг ПІБ: ' + dres.match + ')'],
+      warnings: dres.warnings, images: images.map(({ type, data }) => ({ type, data })),
+    }).then((s) => {
+      const before = lastPct; lastPct = showStats(s);
+      $('busy').hidden = true; $('step2dah').hidden = true; images = []; drawThumbs();
+      $('ok').hidden = false;
+      $('ok').textContent = `Внесено ✅ кв. ${num}. Тепер ${fmtPct(s)}` + (before != null ? ` (${lastPct - before >= 0 ? '+' : ''}${(lastPct - before).toFixed(2).replace('.', ',')}%)` : '') + '. Сайт оновиться протягом 5 хв.';
+    }).catch((x) => { err(x); $('dApprove').disabled = false; });
+  };
+  $('dCancel').onclick = () => { $('step2dah').hidden = true; dres = null; };
 </script>
 </body>
 </html>

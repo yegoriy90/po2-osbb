@@ -140,6 +140,7 @@ function parseDocText_(raw) {
   const okFlat = (n) => (+n.split('-')[0] >= 1 && +n.split('-')[0] <= 725);
   add("2[ \\t]*[-–]?[ \\t]*[ВB][ \\t,]+(?:квартира|кв\\.)" + NUM, 5, okFlat);
   add("власник\\S*[ \\t]+квартири" + NUM, 5, okFlat);
+  add("2[ \\t]*[-–]?[ \\t]*[ВB][ \\t]*,[ \\t]*(\\d{1,3}(?:-\\d)?)(?!\\d|[.,]\\d|/)", 3, okFlat); // ДАХ: «Воскресенська 2В, 165»
   add("(?<!об'єкта:[ \\t]?)квартир[аиіу]" + NUM, 2, okFlat);
   add("(?:^|[ \\t,(])кв\\." + NUM, 2, okFlat);
   if (/управління\s+багатоквартирним/i.test(t)) add("договір" + NUM, 1, okFlat); // у договорах з УК № = № квартири
@@ -202,13 +203,13 @@ function parseDocText_(raw) {
   return { object_type, number, area_total, owners: ownersOut, right_type, documents, address, address_matches, registration_date, phone, problems };
 }
 
-function claude_(images) {
+function claude_(images, schema, prompt) {
   const key = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
   if (!key) throw new Error('Немає ANTHROPIC_API_KEY у властивостях скрипту');
   const content = images.map((im) => (im.type === 'application/pdf'
     ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: im.data } }
     : { type: 'image', source: { type: 'base64', media_type: im.type, data: im.data } }));
-  content.push({ type: 'text', text: PROMPT });
+  content.push({ type: 'text', text: prompt || PROMPT });
   const res = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
     method: 'post',
     contentType: 'application/json',
@@ -218,7 +219,7 @@ function claude_(images) {
       model: CFG.model,
       max_tokens: 4000,
       fallbacks: 'default', // якщо фільтри безпеки відхилять запит — сервер повторить на іншій моделі
-      output_config: { effort: 'low', format: { type: 'json_schema', schema: SCHEMA } },
+      output_config: { effort: 'low', format: { type: 'json_schema', schema: schema || SCHEMA } },
       messages: [{ role: 'user', content }],
     }),
   });
@@ -228,6 +229,95 @@ function claude_(images) {
   if (body.stop_reason === 'refusal') throw new Error('Модель відмовилась обробляти документ');
   if (body.stop_reason === 'max_tokens') throw new Error('Відповідь обрізана — спробуй менше фото');
   return JSON.parse(body.content.filter((b) => b.type === 'text').map((b) => b.text).join(''));
+}
+
+// ---------------------------------------------------------------- заявка з ДАХ (скрін)
+
+const DAH_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['number', 'name', 'role', 'phone'],
+  properties: {
+    number: { type: 'string', description: 'Номер квартири із заявки, напр. "165"; "" якщо не видно' },
+    name: { type: 'string', description: 'Ім\'я заявника як у ДАХ (може бути скорочене, напр. "К Андрій")' },
+    role: { type: 'string', enum: ['власник', 'користувач', 'орендар', 'невідомо'], description: 'Статус у ДАХ: власник/співвласник, користувач/мешканець, орендар/винаймач' },
+    phone: { type: 'string', description: 'Телефон +380XXXXXXXXX; "" якщо не видно' },
+  },
+};
+const DAH_PROMPT = 'Це скріни заявки з застосунку ДАХ (ЖК на вул. Воскресенська, 2-В, Київ). ' +
+  'Витягни номер квартири, ім\'я заявника як написано, його статус (власник / користувач / орендар) і телефон. Нічого не вигадуй.';
+
+/** Розбір тексту скріна ДАХ: № квартири, ім'я, статус, телефон. */
+function parseDahText_(raw) {
+  const t = raw.replace(/[ \t ]+/g, ' ').replace(/[’ʼ`]/g, "'");
+  const d = parseDocText_(raw);
+  const roleOf = (s) => (/власни/i.test(s) ? 'власник' : /орендар|наймач/i.test(s) ? 'орендар' : /користувач|мешканець/i.test(s) ? 'користувач' : '');
+  // спершу окремий рядок-статус («Власник», «Статус: Орендар»), потім будь-де в тексті
+  const roleLine = t.split('\n').map((x) => x.trim()).find((x) => /^(?:роль|статус)?\s*:?\s*(?:спів)?(?:власни|користувач|мешканець|орендар|винаймач|наймач)\S*$/i.test(x));
+  const role = roleOf(roleLine || '') || roleOf(t) || 'невідомо';
+  // Ім'я: повний ПІБ, якщо є; інакше рядок «К Андрій» / «Коваленко Андрій» (без назв кнопок і адрес)
+  let name = d.owners.length ? d.owners[0].name : '';
+  if (!name) {
+    const line = t.split('\n').map((x) => x.trim()).find((x) =>
+      /^[А-ЯІЇЄҐ][а-яіїєґ'-]*\.?(?: [А-ЯІЇЄҐ][а-яіїєґ'-]+){1,2}$/.test(x) && !/Воскресенськ|Паркові|Озера|Київ|ДАХ|ОСББ/.test(x));
+    name = line || '';
+  }
+  return { number: d.object_type === 'квартира' ? d.number : '', name, role, phone: d.phone };
+}
+
+/** Чи збігається ім'я з ДАХ («К Андрій») з власником у реєстрі («Коваленко Андрій Петрович»). */
+function nameMatch_(dahName, regOwner) {
+  const tok = (s) => String(s).toLowerCase().replace(/[’ʼ`]/g, "'").replace(/[.,;()]/g, ' ').split(/\s+/).filter(Boolean);
+  const reg = tok(regOwner), dah = tok(dahName);
+  if (!reg.length) return 'нема ПІБ';
+  if (!dah.length) return 'ні';
+  const hit = dah.filter((w) => reg.some((r) => (w.length === 1 ? r[0] === w : r === w)));
+  return hit.length === dah.length ? 'так' : hit.some((w) => w.length > 1) ? 'частково' : 'ні';
+}
+
+/** Перевірка заявки: що в реєстрі, чи збігається власник, що робити і текст відповіді в ДАХ. */
+function dahCheck(d) {
+  guard_();
+  const r = d.number ? regRow_('квартира', d.number) : null;
+  const current = r ? { status: r.status, area: r.area, owner: r.owner, phone: r.phone, dah: r.dah } : null;
+  const match = r ? nameMatch_(d.name, r.owner) : 'нема в реєстрі';
+  const first = String(d.name || '').split(/\s+/).filter((w) => w.length > 2)[0] || '';
+  const hi = 'Вітаємо' + (first ? ', ' + first : '') + '! Дякуємо, що долучилися до ДАХ 🙌 ';
+  const proof = 'надішліть, будь ласка, фото витягу з Державного реєстру речових прав або договору купівлі-продажу ' +
+    '(сторінку з ПІБ, адресою і площею).';
+  const warnings = [];
+  let verdict, message;
+  if (!d.number) warnings.push('❗ Не видно номера квартири — впиши вручну');
+  else if (!r) warnings.push('❗ Кв. ' + d.number + ' немає в реєстрі');
+  if (d.role !== 'власник') {
+    verdict = 'not-owner';
+    warnings.unshift('❗ У ДАХ статус «' + d.role + '» — голос не рахується');
+    message = hi + 'За нашим реєстром ви не зазначені як власник кв. ' + d.number + ', а для створення ОСББ голосують лише власники. ' +
+      'Будь ласка, попросіть власника квартири теж додатися в ДАХ і підтвердити право власності. Якщо власник — саме ви, ' + proof;
+  } else if (match === 'так' && r.status === OWNER) {
+    verdict = 'ok';
+    message = 'Дякуємо' + (first ? ', ' + first : '') + '! Ваш голос за створення ОСББ зараховано ✅ Слідкувати за прогресом: po2.kyiv.ua';
+  } else {
+    verdict = match === 'так' ? 'confirm' : 'proof';
+    if (match === 'так') warnings.push('Статус у реєстрі: «' + (r.status || '—') + '». Внести можна, але краще попросити витяг (повідомлення нижче)');
+    else if (match === 'частково') warnings.push('ПІБ збігається лише частково: у реєстрі «' + r.owner + '»');
+    else if (r && match === 'нема ПІБ') warnings.push('У реєстрі немає ПІБ власника кв. ' + d.number);
+    else if (r) warnings.push('❗ У реєстрі інший власник: «' + r.owner + '» (можливо, продаж)');
+    message = hi + 'Щоб ваш голос за створення ОСББ зарахувався, підтвердьте право власності на кв. ' + d.number + ': ' + proof +
+      ' Без підтвердження у вас буде статус звичайного користувача.';
+  }
+  if (r && r.dah === IN_DAH && r.status === OWNER) warnings.push('Вже зараховано раніше');
+  return { current, match, verdict, message, warnings };
+}
+
+/** Скріни заявки з ДАХ → № , ім'я, статус, телефон + перевірка за реєстром. */
+function analyzeDah(images) {
+  guard_();
+  if (!images || !images.length) throw new Error('Немає скрінів');
+  const key = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
+  if (!key && typeof Drive === 'undefined') throw new Error('Увімкни службу «Drive API» у редакторі Apps Script (Служби → ＋)');
+  const d = key ? claude_(images.slice(0, 6), DAH_SCHEMA, DAH_PROMPT) : parseDahText_(images.slice(0, 6).map(ocr_).join('\n\n'));
+  return Object.assign(d, dahCheck(d));
 }
 
 // ---------------------------------------------------------------- реєстр
