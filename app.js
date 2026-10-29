@@ -4,11 +4,16 @@
   const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const num = (n) => n.toLocaleString("uk-UA");
   // Поділитися: системне меню на телефоні, інакше — копія в буфер
+  // Посилання — всередині тексту, без окремого url: Telegram/Viber на iPhone з парою text+url часто не надсилають або гублять текст.
+  // Пробіли з toLocaleString (вузькі нерозривні) замінюємо звичайними.
   const share = async (btn, text, url) => {
-    try {
-      if (navigator.share) await navigator.share({ title: document.title, text, url });
-      else { await navigator.clipboard.writeText(text + " " + url); btn.textContent = "Скопійовано, встав у чат ✓"; }
-    } catch (_) {}
+    const msg = (text + " " + url).replace(/[\u00a0\u202f]/g, " ");
+    const copy = async () => {
+      try { await navigator.clipboard.writeText(msg); } catch (_) { window.prompt("Скопіюй і встав у чат:", msg); return; }
+      btn.textContent = "Скопійовано, встав у чат ✓";
+    };
+    if (!navigator.share) return copy();
+    try { await navigator.share({ text: msg }); } catch (e) { if (e && e.name !== "AbortError") copy(); }
   };
   const pctStr = (p) => p.toFixed(1).replace(".", ",").replace(",0", "") + "%";
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -119,7 +124,8 @@
     }).join("");
     town.classList.remove("go");
     new IntersectionObserver((es, o) => es.forEach((e) => e.isIntersecting && (town.classList.add("go"), o.disconnect())), { threshold: 0.15 }).observe(town);
-    shareText = `Сусіди, вже ${inDah} квартир у ДАХ (${pctStr(pct)} площі). Потрібно понад 50%, щоб створити ОСББ в «${S.complex}». Зареєструйся: це 2 хвилини.`;
+    const kv = inDah % 10 === 1 && inDah % 100 !== 11 ? "квартира" : [2, 3, 4].includes(inDah % 10) && ![12, 13, 14].includes(inDah % 100) ? "квартири" : "квартир";
+    shareText = `Сусіди, вже ${inDah} ${kv} у ДАХ (${pctStr(pct)} площі). Потрібно понад 50%, щоб створити ОСББ в «${S.complex}». Зареєструйся: це 2 хвилини.`;
   };
 
   const town = $("#town");
