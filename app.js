@@ -124,7 +124,6 @@
 
   const town = $("#town");
   let shareText = "";
-  render(window.VOTES);
   // Калькулятор: площа → скільки платимо зараз і скільки коштує утримання (тарифи з data.js)
   if (S.tariff && $("#calc-area")) {
     const money = (n) => Math.round(n).toLocaleString("uk-UA");
@@ -141,11 +140,26 @@
       `Я плачу за утримання будинку на ${$("#calc-diff").textContent} грн на рік більше, ніж воно реально коштує за звітом КК. Порахуй для своєї квартири:`,
       location.origin + location.pathname + "#report");
   }
-  // Живі цифри з реєстру (Google Apps Script, ?stats=1) — лише суми по секціях; якщо недоступно, лишається votes.js
-  if (S.statsUrl) {
+  // Живі цифри з реєстру (Google Apps Script, ?stats=1) — лише суми по секціях.
+  // Щоб не блимали старі цифри: спершу останні живі з цього браузера, інакше чекаємо живі до 3 с, потім votes.js.
+  const valid = (v) => v && Array.isArray(v.sections) && v.sections.length === S.sections.length && v.dahArea > 0;
+  const same = (a, b) => a.dahArea === b.dahArea && a.sections.every((x, i) => x.inDah === b.sections[i].inDah);
+  let shown = null;
+  const show = (v) => { if (!shown || !same(shown, v)) render(v); shown = v; };
+  if (!S.statsUrl) show(window.VOTES);
+  else {
+    let cached = null;
+    try { cached = JSON.parse(localStorage.getItem("po2-stats")); } catch (_) {}
+    if (valid(cached) && cached.updatedAt >= window.VOTES.updatedAt) show(cached);
+    const fallback = setTimeout(() => shown || show(window.VOTES), 3000);
     fetch(S.statsUrl).then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((v) => v && Array.isArray(v.sections) && v.sections.length === S.sections.length && v.dahArea > 0 && render(v))
-      .catch(() => {});
+      .then((v) => {
+        if (!valid(v)) return Promise.reject();
+        clearTimeout(fallback);
+        try { localStorage.setItem("po2-stats", JSON.stringify(v)); } catch (_) {}
+        show(v);
+      })
+      .catch(() => { clearTimeout(fallback); shown || show(window.VOTES); });
   }
 
   // Парк позаду і озеро попереду
