@@ -3,18 +3,20 @@
   const $ = (s) => document.querySelector(s);
   const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const num = (n) => n.toLocaleString("uk-UA");
-  // Поділитися: системне меню на телефоні, інакше — копія в буфер
-  // Посилання — всередині тексту, без окремого url: Telegram/Viber на iPhone з парою text+url часто не надсилають або гублять текст.
-  // Пробіли з toLocaleString (вузькі нерозривні) замінюємо звичайними.
-  const share = async (btn, text, url) => {
-    const msg = (text + " " + url).replace(/[\u00a0\u202f]/g, " ");
-    const copy = async () => {
-      try { await navigator.clipboard.writeText(msg); } catch (_) { window.prompt("Скопіюй і встав у чат:", msg); return; }
-      btn.textContent = "Скопійовано, встав у чат ✓";
-    };
-    if (!navigator.share) return copy();
-    try { await navigator.share({ text: msg }); } catch (e) { if (e && e.name !== "AbortError") copy(); }
-  };
+  // Поділитися: прямі посилання Telegram / Viber з готовим текстом. Системне меню (navigator.share) на iPhone
+  // Telegram обрізав до самого посилання — люди отримували лінк без пояснень.
+  const shareMsg = {}; // ключ data-share → () => [текст, url]
+  document.querySelectorAll("[data-share]").forEach((box) => box.addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-via]"); if (!b || !shareMsg[box.dataset.share]) return;
+    const [rawText, url] = shareMsg[box.dataset.share]();
+    const text = rawText.replace(/[\u00a0\u202f]/g, " "), enc = encodeURIComponent;
+    if (b.dataset.via === "tg") window.open(`https://t.me/share/url?url=${enc(url)}&text=${enc(text)}`, "_blank", "noopener");
+    else if (b.dataset.via === "viber") location.href = `viber://forward?text=${enc(text + "\n" + url)}`;
+    else {
+      try { await navigator.clipboard.writeText(text + "\n" + url); b.textContent = "Скопійовано ✓"; }
+      catch (_) { window.prompt("Скопіюй і встав у чат:", text + "\n" + url); }
+    }
+  }));
   const pctStr = (p) => p.toFixed(1).replace(".", ",").replace(",0", "") + "%";
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -142,9 +144,10 @@
     $("#calc-area").addEventListener("input", (e) => { calc(e.target.value); $("#calc-range").value = e.target.value; });
     $("#calc-range").addEventListener("input", (e) => { $("#calc-area").value = e.target.value; calc(e.target.value); });
     calc($("#calc-area").value);
-    $("#calc-share").onclick = (e) => share(e.target,
-      `Я плачу за утримання будинку на ${$("#calc-diff").textContent} грн на рік більше, ніж воно реально коштує за звітом КК. Порахуй для своєї квартири:`,
-      location.origin + location.pathname + "#report");
+    shareMsg.calc = () => [
+      `Сусіди, порахував(ла): за утримання будинку я плачу ${$("#calc-now").textContent} грн на місяць, а за звітом КК воно реально коштує ${$("#calc-real").textContent} грн. ` +
+      `Різниця — ${$("#calc-diff").textContent} грн на рік лише з моєї квартири. Змінити це можемо тільки через ОСББ. Порахуй для своєї квартири й зареєструйся в ДАХ:`,
+      location.origin + location.pathname + "#report"];
   }
   // Живі цифри з реєстру (Google Apps Script, ?stats=1) — лише суми по секціях.
   // Щоб не блимали старі цифри: спершу останні живі з цього браузера, інакше чекаємо живі до 3 с, потім votes.js.
@@ -256,5 +259,5 @@
   Power.watch(pwrShow);
 
   // ---------- Поділитися ----------
-  $("#share").onclick = (e) => share(e.target, shareText, location.href);
+  shareMsg.votes = () => [shareText, location.origin + location.pathname];
 })();
