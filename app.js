@@ -3,6 +3,13 @@
   const $ = (s) => document.querySelector(s);
   const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const num = (n) => n.toLocaleString("uk-UA");
+  // Поділитися: системне меню на телефоні, інакше — копія в буфер
+  const share = async (btn, text, url) => {
+    try {
+      if (navigator.share) await navigator.share({ title: document.title, text, url });
+      else { await navigator.clipboard.writeText(text + " " + url); btn.textContent = "Скопійовано, встав у чат ✓"; }
+    } catch (_) {}
+  };
   const pctStr = (p) => p.toFixed(1).replace(".", ",").replace(",0", "") + "%";
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -130,6 +137,9 @@
     $("#calc-area").addEventListener("input", (e) => { calc(e.target.value); $("#calc-range").value = e.target.value; });
     $("#calc-range").addEventListener("input", (e) => { $("#calc-area").value = e.target.value; calc(e.target.value); });
     calc($("#calc-area").value);
+    $("#calc-share").onclick = (e) => share(e.target,
+      `Я плачу за утримання будинку на ${$("#calc-diff").textContent} грн на рік більше, ніж воно реально коштує за звітом КК. Порахуй для своєї квартири:`,
+      location.origin + location.pathname + "#report");
   }
   // Живі цифри з реєстру (Google Apps Script, ?stats=1) — лише суми по секціях; якщо недоступно, лишається votes.js
   if (S.statsUrl) {
@@ -226,11 +236,5 @@
   Power.watch(pwrShow);
 
   // ---------- Поділитися ----------
-  $("#share").onclick = async (e) => {
-    const data = { title: document.title, text: shareText, url: location.href };
-    try {
-      if (navigator.share) await navigator.share(data);
-      else { await navigator.clipboard.writeText(data.text + " " + data.url); e.target.textContent = "Посилання скопійовано ✓"; }
-    } catch (_) {}
-  };
+  $("#share").onclick = (e) => share(e.target, shareText, location.href);
 })();
