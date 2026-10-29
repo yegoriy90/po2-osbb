@@ -118,6 +118,19 @@
   const town = $("#town");
   let shareText = "";
   render(window.VOTES);
+  // Калькулятор: площа → скільки платимо зараз і скільки коштує утримання (тарифи з data.js)
+  if (S.tariff && $("#calc-area")) {
+    const money = (n) => Math.round(n).toLocaleString("uk-UA");
+    const calc = (area) => {
+      const a = Math.min(400, Math.max(0, parseFloat(String(area).replace(",", ".")) || 0));
+      $("#calc-now").textContent = money(a * S.tariff.now);
+      $("#calc-real").textContent = money(a * S.tariff.real);
+      $("#calc-diff").textContent = money(a * (S.tariff.now - S.tariff.real) * 12);
+    };
+    $("#calc-area").addEventListener("input", (e) => { calc(e.target.value); $("#calc-range").value = e.target.value; });
+    $("#calc-range").addEventListener("input", (e) => { $("#calc-area").value = e.target.value; calc(e.target.value); });
+    calc($("#calc-area").value);
+  }
   // Живі цифри з реєстру (Google Apps Script, ?stats=1) — лише суми по секціях; якщо недоступно, лишається votes.js
   if (S.statsUrl) {
     fetch(S.statsUrl).then((r) => (r.ok ? r.json() : Promise.reject()))

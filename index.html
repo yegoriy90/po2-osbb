@@ -21,7 +21,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%235a9a2c'/%3E%3Cpath d='M16 6c5 4 5 10 0 14-5-4-5-10 0-14z' fill='%23fff'/%3E%3Cpath d='M8 23c3-2 5 2 8 0s5 2 8 0' stroke='%23fff' stroke-width='2' fill='none'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261025c">
+  <link rel="stylesheet" href="styles.css?v=20261029a">
 </head>
 <body>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -115,6 +115,18 @@
         <div class="facts">
           <div class="fact card"><b>+42%</b><p>За 2025 рік КК оплатила компанії забудовника на <strong>224 тис. кВт·год більше</strong>, ніж будинок отримав від YASNO. Це ≈<strong>2,3 млн грн</strong> за 11 місяців.</p></div>
           <div class="fact card"><b>41%</b><p>Звітує КК про витрати на весь будинок. Плату ж нарахувала лише на <strong>41% запланованого</strong>: площі забудовника майже не рахували.</p></div>
+        </div>
+        <div class="calc card">
+          <label class="calc__in" for="calc-area">Площа вашої квартири
+            <span class="calc__field"><input id="calc-area" type="number" inputmode="decimal" min="10" max="400" step="0.1" value="59"> м²</span>
+          </label>
+          <input id="calc-range" type="range" min="20" max="150" step="1" value="59" aria-label="Площа квартири, м²">
+          <div class="calc__out">
+            <div><span>Платите зараз</span><b id="calc-now">—</b><small>грн на місяць</small></div>
+            <div><span>Утримання коштує*</span><b id="calc-real">—</b><small>грн на місяць</small></div>
+            <div class="calc__diff"><span>Різниця</span><b id="calc-diff">—</b><small>грн на рік</small></div>
+          </div>
+          <p class="calc__note">Орієнтовно: якщо кошторис ОСББ дорівнюватиме реальним витратам будинку за 2025 рік. Автоматично тариф не знизиться — його затверджують власники на зборах.</p>
         </div>
         <p class="footnote">* Усі витрати зі Звіту КК за 2025 рік (4,31 млн грн), включно з непідтвердженими документами, плюс винагорода КК і резервний фонд.</p>
 
@@ -223,9 +235,9 @@
     </div>
   </footer>
 
-  <script src="data.js?v=20261025c"></script>
-  <script src="votes.js?v=20261025c"></script>
-  <script src="power.js?v=20261025c"></script>
-  <script src="app.js?v=20261025c"></script>
+  <script src="data.js?v=20261029a"></script>
+  <script src="votes.js?v=20261029a"></script>
+  <script src="power.js?v=20261029a"></script>
+  <script src="app.js?v=20261029a"></script>
 </body>
 </html>

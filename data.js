@@ -10,6 +10,9 @@ window.SITE = {
   threshold: 0.5,
   avgArea: 59, // м², середня площа квартир, яких ще немає в ДАХ (з реєстру)
 
+  // Калькулятор у блоці звіту КК, грн/м² на місяць з ПДВ: тариф зараз і реальна вартість утримання (Звіт КК 2025)
+  tariff: { now: 29.44, real: 15 },
+
   // Живі цифри з реєстру: URL веб-застосунку Apps Script + "?stats=1" (tools/apps-script/README.md).
   // Порожньо — сайт бере votes.js.
   statsUrl: "https://script.google.com/macros/s/AKfycby2ute45O4Fe5KeP90P29oZyfoOiBGD9cGvk3X7UwSIERiZWt_OjBirrTm7ONjSA-ot/exec?stats=1",
