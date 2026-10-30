@@ -218,6 +218,11 @@ mark { background: linear-gradient(transparent 62%, var(--orange-l) 62%, var(--o
 .fact b { display: block; font: 800 clamp(2.4rem, 6vw, 3.2rem)/1 var(--display); color: var(--orange); margin-bottom: 12px; }
 .fact p { margin: 0; }
 .footnote { color: var(--muted); font-size: .85rem; margin: 14px 0 0; }
+.guide { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 360px); justify-content: center; align-items: center; gap: 28px; margin: 28px auto 36px; }
+.guide video { display: block; width: 100%; height: auto; aspect-ratio: 9 / 16; border-radius: 24px; background: #1d2a17; box-shadow: 0 24px 48px -28px rgba(29, 58, 22, .7); }
+.guide figcaption { color: var(--muted); font-size: 1.02rem; }
+.guide figcaption b { display: block; font: 800 1.35rem/1.25 var(--display); color: var(--green-d); margin-bottom: 8px; }
+@media (max-width: 760px) { .guide { grid-template-columns: minmax(0, 340px); text-align: center; gap: 16px; } .guide figcaption { order: -1; } }
 .calc { margin-top: 16px; padding: 26px 32px; }
 .calc__in { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; font-weight: 800; color: var(--green-d); font-size: 1.05rem; }
 .calc__field { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; color: var(--muted); }
