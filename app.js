@@ -245,13 +245,17 @@
     const slots = [today, tomorrow].flatMap((k) => (sch[k]?.slots || []).map(([a, b]) => ({ s: kAt(k, a), e: b === "00:00" ? kAt(k, "24:00") : kAt(k, b), k })));
     const cur = slots.find((x) => x.s <= now && now < x.e), next = slots.find((x) => x.s > now);
     let txt = "", short = "", tip = "";
-    if (sch[today]?.emergency) { txt = "екстрені"; short = "⚠"; tip = "Екстрені відключення: графіки не діють"; }
+    const emerg = sch[today]?.emergency;
+    if (emerg && !(sch[today].slots || []).length) { txt = "екстрені"; short = "⚠"; tip = "Екстрені відключення: графіки не діють"; }
     else if (cur) {
       // Світло є, хоча за графіком зараз відключення — «можуть вимкнути»; світла немає — коли має повернутися
       txt = last.on ? `можуть вимкн. до ${hmEnd(cur.e)}` : `до ${hmEnd(cur.e)}`; short = `до ${hmEnd(cur.e)}`;
       tip = last.on ? `За графіком зараз відключення до ${hmEnd(cur.e)}, але світло поки є` : `За графіком світло має повернутися о ${hmEnd(cur.e)}`;
     }
     else if (next) { txt = `відкл. ${next.k === today ? "" : "завтра "}о ${hm(next.s)}`; short = `о ${hm(next.s)}`; tip = `Наступне відключення за графіком: ${next.k === today ? "сьогодні" : "завтра"} ${hm(next.s)}–${hmEnd(next.e)}`; }
+    // Є графік і водночас екстрені — показуємо графік із позначкою
+    if (emerg && (cur || next)) { txt = "⚠ " + txt; short = "⚠ " + short; tip += ". Також можливі екстрені відключення"; }
+    else if (emerg && !txt) { txt = "екстрені"; short = "⚠"; tip = "Екстрені відключення"; }
     $(".pwr__next").textContent = txt;
     $(".pwr__next").dataset.short = short;
     pwr.title = (tip ? tip + ". " : "") + "Дані світлобота @power_po2";

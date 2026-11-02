@@ -68,22 +68,26 @@
     // найближчий плановий слот
     const slots = [today, tomorrow].flatMap((k) => (sched[k]?.slots || []).map(([s, e]) => ({ s: at(k, s), e: e === "24:00" || e === "00:00" ? midnight(k) + DAY : at(k, e) })));
     const cur = slots.find((x) => x.s <= now && now < x.e), next = slots.find((x) => x.s > now);
+    // Екстрені без графіка — графік не діє; екстрені + графік — показуємо графік і примітку
     const emergency = sched[today]?.emergency;
-    $("#now-plan").classList.toggle("pw-now__plan--alert", !!emergency);
-    $("#now-plan").textContent = emergency ? "⚠ Екстрені відключення"
-      : cur ? (last && last.on ? `За графіком зараз відключення до ${hmEnd(cur.e)} — але світло поки є` : `За графіком світло має повернутися о ${hmEnd(cur.e)}`)
+    const emergOnly = emergency && !(sched[today]?.slots || []).length;
+    const planTxt = cur ? (last && last.on ? `За графіком зараз відключення до ${hmEnd(cur.e)} — але світло поки є` : `За графіком світло має повернутися о ${hmEnd(cur.e)}`)
       : next ? `Наступне за графіком: ${key(next.s) === today ? "сьогодні" : "завтра"} ${hm(next.s)}–${hmEnd(next.e)}` : "";
+    $("#now-plan").classList.toggle("pw-now__plan--alert", !!emergency);
+    $("#now-plan").textContent = emergOnly ? "⚠ Екстрені відключення"
+      : emergency ? (planTxt ? planTxt + " · ⚠ можливі й екстрені" : "⚠ Можливі екстрені відключення") : planTxt;
 
     // ---- Сьогодні ----
     const a = midnight(today), b = a + DAY;
     const t = bar(iv, a, b, sched[today]?.slots, now);
-    // Екстрені: графік не діє, світло можуть вимкнути будь-коли — суцільна смуга на всю добу
-    const plan = emergency ? '<i class="emerg"></i>' : t.plan;
-    const label = emergency ? '<p class="pw-emerg-label"><b>⚠ Екстрені відключення</b> графік не діє, світло можуть вимкнути будь-коли</p>' : "";
-    $("#today").innerHTML = `${label}<div class="pw-plan${emergency ? " pw-plan--emerg" : ""}">${plan}</div><div class="pw-bar">${t.bar}</div>
+    // Лише екстрені: графік не діє — суцільна смуга на всю добу. Екстрені + графік: смуга графіка й примітка
+    const plan = emergOnly ? '<i class="emerg"></i>' : t.plan;
+    const label = emergOnly ? '<p class="pw-emerg-label"><b>⚠ Екстрені відключення</b> графік не діє, світло можуть вимкнути будь-коли</p>'
+      : emergency ? '<p class="pw-emerg-label"><b>⚠ Також екстрені відключення</b> світло можуть вимкнути й поза графіком</p>' : "";
+    $("#today").innerHTML = `${label}<div class="pw-plan${emergOnly ? " pw-plan--emerg" : ""}">${plan}</div><div class="pw-bar">${t.bar}</div>
       <div class="pw-ticks"><span style="left:0">00</span><span style="left:25%">06</span><span style="left:50%">12</span><span style="left:75%">18</span><span style="left:100%">24</span></div>`;
-    document.querySelector(".pw-legend .lg-emerg").hidden = !emergency;
-    document.querySelector(".pw-legend .lg-plan").hidden = !!emergency;
+    document.querySelector(".pw-legend .lg-emerg").hidden = !emergOnly;
+    document.querySelector(".pw-legend .lg-plan").hidden = !!emergOnly;
     $("#today-total").textContent = known(iv, a, Math.min(b, now)) ? `без світла: ${dur(offIn(iv, a, Math.min(b, now)))}` : "";
 
     // ---- Графік ----
@@ -97,7 +101,7 @@
       }).join("");
       const total = s.slots.reduce((n, [x, y]) => n + ((y === "24:00" || y === "00:00" ? midnight(k) + DAY : at(k, y)) - at(k, x)), 0);
       return `<div class="pw-day-plan"><h3>${label}, ${weekday(midnight(k) + H)}</h3>
-        ${s.emergency ? '<div class="pw-alert">🚨 Екстрені відключення — графіки не застосовуються</div>' : ""}
+        ${s.emergency ? (s.slots.length ? '<div class="pw-alert">⚠ Діють також екстрені відключення — світло можуть вимкнути поза графіком</div>' : '<div class="pw-alert">🚨 Екстрені відключення — графіки не застосовуються</div>') : ""}
         ${s.slots.length ? `<ul>${items}</ul><p>Усього за графіком: ${dur(total)}</p>` : `<p>${s.emergency ? "Графік не діє — світло можуть вимкнути будь-коли." : s.waiting ? "Графік ще не опублікували." : s.noOutages ? "Відключень не заплановано 🎉" : "Планових відключень немає."}</p>`}</div>`;
     };
     $("#sched").innerHTML = dayPlan(today, "Сьогодні") + dayPlan(tomorrow, "Завтра");
