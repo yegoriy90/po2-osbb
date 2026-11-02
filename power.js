@@ -4,6 +4,7 @@
 //   /power-status        — живий стан { status: on|off, timestamp, group: "5.1" }
 //   /events?location=home — історія перемикань [{ status, timestamp }], від нових до старих
 //   /schedule/home        — графік на сьогодні/завтра { status, slots }
+//   /schedule-history/home — знімки графіка кожні 15 хв (~доба); з них беремо останній графік до екстрених
 window.Power = (function () {
   const API = "https://light.rmn.pp.ua/api";
   const get = (path) => fetch(API + path, { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(r.status)));
@@ -31,7 +32,7 @@ window.Power = (function () {
     return { slots, emergency: /emergency/i.test(st), waiting: /waiting/i.test(st), noOutages: !slots.length && !/emergency|waiting/i.test(st) };
   };
 
-  let events = null, live = null, sched = null;
+  let events = null, live = null, sched = null, hist = null;
 
   // → { events: [{t, on}] за зростанням часу, schedules: { "YYYY-MM-DD": {slots, emergency, noOutages} }, group }
   const build = () => {
@@ -44,13 +45,27 @@ window.Power = (function () {
     }
     const schedules = {};
     for (const d of [sched?.schedule?.today, sched?.schedule?.tomorrow]) if (d?.date) schedules[d.date.slice(0, 10)] = day(d);
+    // Екстрені без графіка: показуємо останній графік на цей день, що діяв до них (lastKnown — із приміткою)
+    for (const [k, s] of Object.entries(schedules)) {
+      if (!s.emergency || s.slots.length || !hist) continue;
+      const prev = hist.map((h) => [h.today, h.tomorrow]).flat().find((d) => d?.date?.slice(0, 10) === k && day(d).slots.length);
+      if (prev) Object.assign(s, { slots: day(prev).slots, lastKnown: true, noOutages: false });
+    }
     return { events: ev, schedules, group: live?.group || live?.yasno_group, updatedAt: new Date().toISOString() };
   };
 
   const loadLive = () => get("/power-status").then((d) => (live = d)).catch(() => {});
   const loadRest = () => Promise.all([
     get("/events?location=home&limit=100").then((d) => (events = d)).catch(() => {}),
-    get("/schedule/home").then((d) => (sched = d)).catch(() => {}),
+    get("/schedule/home").then((d) => {
+      sched = d;
+      // історія (~40 КБ) потрібна лише під час екстрених без графіка; знімки від нових до старих
+      const s = d?.schedule || {};
+      if (![s.today, s.tomorrow].some((x) => /emergency/i.test(x?.status || "") && !day(x).slots.length)) return (hist = null);
+      return get("/schedule-history/home?limit=100")
+        .then((h) => (hist = (h || []).map((x) => { try { return JSON.parse(x.schedule_text); } catch (_) { return null; } }).filter(Boolean)))
+        .catch(() => {});
+    }).catch(() => {}),
   ]);
 
   // onData(дані) — після кожного оновлення; onFail — якщо API не відповідає.

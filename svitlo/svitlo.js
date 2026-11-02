@@ -83,7 +83,8 @@
     // Лише екстрені: графік не діє — суцільна смуга на всю добу. Екстрені + графік: смуга графіка й примітка
     const plan = emergOnly ? '<i class="emerg"></i>' : t.plan;
     const label = emergOnly ? '<p class="pw-emerg-label"><b>⚠ Екстрені відключення</b> графік не діє, світло можуть вимкнути будь-коли</p>'
-      : emergency ? '<p class="pw-emerg-label"><b>⚠ Також екстрені відключення</b> світло можуть вимкнути й поза графіком</p>' : "";
+      : emergency ? (sched[today].lastKnown ? '<p class="pw-emerg-label"><b>⚠ Екстрені відключення</b> показано останній графік до них — світло можуть вимкнути й поза ним</p>'
+        : '<p class="pw-emerg-label"><b>⚠ Також екстрені відключення</b> світло можуть вимкнути й поза графіком</p>') : "";
     $("#today").innerHTML = `${label}<div class="pw-plan${emergOnly ? " pw-plan--emerg" : ""}">${plan}</div><div class="pw-bar">${t.bar}</div>
       <div class="pw-ticks"><span style="left:0">00</span><span style="left:25%">06</span><span style="left:50%">12</span><span style="left:75%">18</span><span style="left:100%">24</span></div>`;
     document.querySelector(".pw-legend .lg-emerg").hidden = !emergOnly;
@@ -101,7 +102,8 @@
       }).join("");
       const total = s.slots.reduce((n, [x, y]) => n + ((y === "24:00" || y === "00:00" ? midnight(k) + DAY : at(k, y)) - at(k, x)), 0);
       return `<div class="pw-day-plan"><h3>${label}, ${weekday(midnight(k) + H)}</h3>
-        ${s.emergency ? (s.slots.length ? '<div class="pw-alert">⚠ Діють також екстрені відключення — світло можуть вимкнути поза графіком</div>' : '<div class="pw-alert">🚨 Екстрені відключення — графіки не застосовуються</div>') : ""}
+        ${s.emergency ? (s.lastKnown ? '<div class="pw-alert">⚠ Екстрені відключення. Нижче — останній графік, що діяв до них: світло можуть вимкнути й поза ним</div>'
+          : s.slots.length ? '<div class="pw-alert">⚠ Діють також екстрені відключення — світло можуть вимкнути поза графіком</div>' : '<div class="pw-alert">🚨 Екстрені відключення — графіки не застосовуються</div>') : ""}
         ${s.slots.length ? `<ul>${items}</ul><p>Усього за графіком: ${dur(total)}</p>` : `<p>${s.emergency ? "Графік не діє — світло можуть вимкнути будь-коли." : s.waiting ? "Графік ще не опублікували." : s.noOutages ? "Відключень не заплановано 🎉" : "Планових відключень немає."}</p>`}</div>`;
     };
     $("#sched").innerHTML = dayPlan(today, "Сьогодні") + dayPlan(tomorrow, "Завтра");
