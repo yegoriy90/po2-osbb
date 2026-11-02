@@ -1,0 +1,12 @@
+# ТИМЧАСОВИЙ: перевірка API світла. Видалити після.
+name: probe
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          A=https://light.rmn.pp.ua/api
+          for p in schedule/home power-status "events?location=home&limit=5"; do echo "### $p"; curl -sS -m 30 -H "Origin: https://po2.kyiv.ua" "$A/$p"; echo; done
+          echo "### paths"; curl -sS -m 30 "$A/openapi.json" | jq -c '.paths | to_entries[] | {p: .key, d: ([.value[]?.summary] | join(" / "))}'
+          echo "### llms"; curl -sS -m 30 https://light.rmn.pp.ua/llms.txt | grep -i -n "schedul\|emerg\|графік\|history" | head -40
