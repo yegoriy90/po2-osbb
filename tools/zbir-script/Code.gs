@@ -1,7 +1,7 @@
 /**
  * Збір на резервне живлення — Google Apps Script Web App у таблиці опитування (po2_zbir → Google Таблиці).
  *
- *  • POST (форма на po2.kyiv.ua/zbir/) — заявка: № квартири, готовність, посильна сума, ім'я, контакт.
+ *  • POST (форма на po2.kyiv.ua/zbir/) — заявка: № квартири, ім'я (обов'язково), готовність, посильна сума, контакт.
  *    Кожна заявка пишеться в лог «Заявки». У рядок квартири на аркуші «Опитування» — лише якщо рядок
  *    порожній або контакт той самий; інакше в «Примітка» ставиться ⚠ і рядок лишається як був (розбирає ІГ).
  *  • GET ?stats=1 — публічний JSON: лише суми по секціях. Без номерів квартир, імен і контактів.
@@ -38,6 +38,7 @@ function doPost(e) {
   const name = String(f.name || '').trim().slice(0, 60);
   const contact = String(f.contact || '').trim().slice(0, 60);
   if (!apt) return json_({ ok: false, error: 'Вкажіть номер квартири' });
+  if (!name) return json_({ ok: false, error: 'Вкажіть ім’я' });
   if (!answer) return json_({ ok: false, error: 'Оберіть відповідь' });
   if (amount > Z.maxAmount) return json_({ ok: false, error: 'Перевірте суму' });
   if (answer !== 'Ні' && !contact) return json_({ ok: false, error: 'Залиште телефон або Telegram, щоб ми могли написати, коли буде кошторис' });

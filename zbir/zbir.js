@@ -75,6 +75,8 @@
     const aptIn = form.apt, apt = validApt(aptIn.value);
     aptIn.setAttribute("aria-invalid", apt ? "false" : "true");
     if (!apt) return say(aptIn.value.trim() === "337" ? "Квартира 337 розділена: вкажіть 337-1 або 337-2." : "Вкажіть номер квартири від 1 до 725.", "err"), aptIn.focus();
+    const nm = form.name; nm.setAttribute("aria-invalid", nm.value.trim() ? "false" : "true");
+    if (!nm.value.trim()) return say("Вкажіть ім’я.", "err"), nm.focus();
     const answer = form.answer.value;
     if (!answer) return say("Оберіть: так, подумаю чи ні.", "err");
     let sum = 0;
