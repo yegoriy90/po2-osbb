@@ -17,7 +17,7 @@
 .zb-count__side b { color: var(--orange); font: 800 1.6rem var(--display); }
 .zb-count[data-state="off"] .bar__fill { width: 0 !important; }
 
-.zb-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 22px; }
+.zb-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 22px; }
 .zb-stats div { background: var(--green-bg); border-radius: 16px; padding: 14px 16px; }
 .zb-stats b { display: block; font: 800 1.35rem var(--display); color: var(--green-d); }
 .zb-stats span { display: block; font-size: .85rem; color: var(--muted); line-height: 1.35; margin-top: 2px; }

@@ -26,15 +26,15 @@
       const d = new Date(st.updatedAt);
       $("c-updated").textContent = "Оновлено " + d.toLocaleString("uk-UA", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
     }
-    $("c-median").textContent = st.median ? uah(st.median) : "—";
     $("c-maybe").textContent = fmt(maybe);
     $("c-paid").textContent = st.paid ? uah(st.paid) : "0 грн";
-    const cloud = (st.cloud || []).filter((c) => c[1] > 0);
+    // «Хмара»: більші суми — першими й крупніше (щоб орієнтиром були вони, а не найменші).
+    const cloud = (st.cloud || []).filter((c) => c[1] > 0).sort((a, b) => b[0] - a[0]);
     $("cloud").hidden = !cloud.length;
     if (cloud.length) {
-      const max = Math.max(...cloud.map((c) => c[1]));
+      const top = cloud[0][0];
       $("cloud-list").innerHTML = cloud.map(([amt, n]) => {
-        const k = 0.9 + 0.7 * (n / max);
+        const k = 0.85 + 1.05 * Math.pow(amt / top, 0.8);
         return `<span style="font-size:${k.toFixed(2)}rem">${fmt(amt)} грн<small>× ${n}</small></span>`;
       }).join("");
     }
