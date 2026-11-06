@@ -94,3 +94,10 @@
 .zb-why__item span { color: var(--muted); font-size: .94rem; line-height: 1.45; }
 .zb-why__note { margin: 10px 0 0; color: var(--muted); font-size: .9rem; font-style: italic; }
 @media (max-width: 640px) { .zb-why__grid { grid-template-columns: 1fr; } }
+
+.zb-cloud { margin-top: 18px; padding: 16px 18px; border-radius: 16px; background: #fff8ef; border: 1px solid #ffe3c7; }
+.zb-cloud h3 { margin: 0 0 10px; font-size: 1rem; color: var(--brown); }
+.zb-cloud__list { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+.zb-cloud__list span { display: inline-flex; align-items: baseline; gap: 6px; padding: 6px 14px; border-radius: 99px; background: #fff; border: 1.5px solid #ffd9b0; font-weight: 800; color: #c2610c; line-height: 1.2; }
+.zb-cloud__list span small { font-weight: 700; color: var(--muted); font-size: .8em; }
+.zb-cloud p { margin: 10px 0 0; font-size: .82rem; color: var(--muted); }

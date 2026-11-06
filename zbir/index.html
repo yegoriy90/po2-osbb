@@ -21,8 +21,8 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%234e8f27'/%3E%3Crect x='9' y='11' width='13' height='10' rx='2' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Crect x='22' y='14' width='2' height='4' fill='%23fff'/%3E%3Crect x='11' y='13' width='6' height='6' fill='%23ffbf4d'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles.css?v=20261106d">
-  <link rel="stylesheet" href="zbir.css?v=20261106d">
+  <link rel="stylesheet" href="../styles.css?v=20261106e">
+  <link rel="stylesheet" href="zbir.css?v=20261106e">
 </head>
 <body>
   <header class="topbar">
@@ -53,6 +53,11 @@
         <div><b id="c-median">—</b><span>типова сума з квартири <br>(медіана відповідей «Так»)</span></div>
         <div><b id="c-maybe">—</b><span>квартир ще думають</span></div>
         <div><b id="c-paid">—</b><span>уже сплачено</span></div>
+      </div>
+      <div class="zb-cloud" id="cloud" hidden>
+        <h3>Скільки вже заявили</h3>
+        <div class="zb-cloud__list" id="cloud-list"></div>
+        <p>Без номерів квартир: сума й скільки квартир її вказали.</p>
       </div>
       <div class="zb-sections" id="sections"></div>
     </section>
@@ -96,10 +101,8 @@
         <fieldset class="zb-field" id="amount-box">
           <legend>Скільки готові внести, грн</legend>
           <div class="zb-chips" data-name="preset">
-            <label><input type="radio" name="preset" value="1000"><span>1 000</span></label>
-            <label><input type="radio" name="preset" value="2000"><span>2 000</span></label>
-            <label><input type="radio" name="preset" value="3000"><span>3 000</span></label>
             <label><input type="radio" name="preset" value="5000"><span>5 000</span></label>
+            <label><input type="radio" name="preset" value="7500"><span>7 500</span></label>
             <label><input type="radio" name="preset" value="10000"><span>10 000</span></label>
             <label><input type="radio" name="preset" value="other"><span>Інша</span></label>
           </div>
@@ -132,7 +135,7 @@
     </div>
   </footer>
 
-  <script src="../data.js?v=20261106d"></script>
-  <script src="zbir.js?v=20261106d"></script>
+  <script src="../data.js?v=20261106e"></script>
+  <script src="zbir.js?v=20261106e"></script>
 </body>
 </html>

@@ -29,6 +29,15 @@
     $("c-median").textContent = st.median ? uah(st.median) : "—";
     $("c-maybe").textContent = fmt(maybe);
     $("c-paid").textContent = st.paid ? uah(st.paid) : "0 грн";
+    const cloud = (st.cloud || []).filter((c) => c[1] > 0);
+    $("cloud").hidden = !cloud.length;
+    if (cloud.length) {
+      const max = Math.max(...cloud.map((c) => c[1]));
+      $("cloud-list").innerHTML = cloud.map(([amt, n]) => {
+        const k = 0.9 + 0.7 * (n / max);
+        return `<span style="font-size:${k.toFixed(2)}rem">${fmt(amt)} грн<small>× ${n}</small></span>`;
+      }).join("");
+    }
     $("sections").innerHTML = sec.map((s, i) => {
       const p = s.total ? Math.min(100, s.yes / s.total * 100) : 0;
       return `<div class="zb-sec"><h3>Секція ${i + 1}</h3><div class="bar"><div class="bar__fill" style="width:${p.toFixed(1)}%"></div></div>
