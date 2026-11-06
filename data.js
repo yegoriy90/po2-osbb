@@ -19,7 +19,7 @@ window.SITE = {
 
   // Збір на резервне живлення (po2.kyiv.ua/zbir/): URL веб-застосунку з tools/zbir-script (закінчується на /exec).
   // Порожньо — форма показує «скоро», цифри не вантажаться.
-  zbirUrl: "",
+  zbirUrl: "https://script.google.com/macros/s/AKfycbyZP9vufG9tBil7KbKqrpe1s5quuJC6VpZQuoAyPAAEd1pHaxPcjFD8qcECCCwgpT5o/exec",
 
   dahUrl: "https://app.dah.in.ua/oNCk",
   dahBuilding: "Воскресенська 2В",
