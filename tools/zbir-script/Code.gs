@@ -74,12 +74,13 @@ function doPost(e) {
   return json_({ ok: true, status: status, stats: stats_(false) });
 }
 
-/** Лише агрегати. Медіана й «хмара» сум — по тих, хто відповів «Так» і вказав суму. */
+/** Лише агрегати. Медіана, «хмара» сум і останні заявки (дата, секція, сума) — по тих, хто відповів «Так» і вказав суму. */
 function stats_(useCache) {
   const cache = CacheService.getScriptCache();
   if (useCache) { const c = cache.get('stats'); if (c) return JSON.parse(c); }
   const sh = SpreadsheetApp.getActive().getSheetByName(Z.sheet);
-  const rows = sh.getRange(Z.first, 1, sh.getLastRow() - Z.first + 1, 7).getValues();
+  const rows = sh.getRange(Z.first, 1, sh.getLastRow() - Z.first + 1, 10).getValues();
+  const recent = [];
   const sections = Z.sections.map(() => ({ total: 0, yes: 0, maybe: 0, no: 0, pledged: 0 }));
   const amounts = [], cloud = {};
   let paid = 0;
@@ -90,7 +91,7 @@ function stats_(useCache) {
     Z.sections.forEach((f, k) => { if (n >= f) s = k; });
     const x = sections[s], amt = Number(r[5]) || 0;
     x.total++;
-    if (r[4] === 'Так') { x.yes++; x.pledged += amt; if (amt > 0) { amounts.push(amt); const b = Math.max(500, Math.round(amt / 500) * 500); cloud[b] = (cloud[b] || 0) + 1; } }
+    if (r[4] === 'Так') { x.yes++; x.pledged += amt; if (amt > 0) { amounts.push(amt); if (r[9] instanceof Date) recent.push([r[9].getTime(), s + 1, amt]); const b = Math.max(500, Math.round(amt / 500) * 500); cloud[b] = (cloud[b] || 0) + 1; } }
     else if (r[4] === 'Подумаю') x.maybe++;
     else if (r[4] === 'Ні') x.no++;
     paid += Number(r[6]) || 0;
@@ -98,6 +99,8 @@ function stats_(useCache) {
   amounts.sort((a, b) => a - b);
   const m = amounts.length, median = m ? (m % 2 ? amounts[(m - 1) / 2] : (amounts[m / 2 - 1] + amounts[m / 2]) / 2) : 0;
   const out = { updatedAt: Utilities.formatDate(new Date(), 'Europe/Kyiv', "yyyy-MM-dd'T'HH:mm"), median: Math.round(median), paid, sections,
+    // останні 30 заявок «Так»: [дата, секція, сума] — без номерів квартир, імен і часу
+    recent: recent.sort((a, b) => b[0] - a[0]).slice(0, 30).map((x) => [Utilities.formatDate(new Date(x[0]), 'Europe/Kyiv', 'yyyy-MM-dd'), x[1], x[2]]),
     cloud: Object.keys(cloud).map(Number).sort((a, b) => a - b).map((k) => [k, cloud[k]]) }; // «хмара»: [сума, к-сть квартир], округлено до 500, без номерів
   cache.put('stats', JSON.stringify(out), 300);
   return out;

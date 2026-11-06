@@ -38,6 +38,14 @@
         return `<span style="font-size:${k.toFixed(2)}rem">${fmt(amt)} грн<small>× ${n}</small></span>`;
       }).join("");
     }
+    const recent = st.recent || [];
+    $("recent").hidden = !recent.length;
+    if (recent.length) {
+      const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Kyiv" });
+      const yest = new Date(Date.now() - 864e5).toLocaleDateString("sv-SE", { timeZone: "Europe/Kyiv" });
+      const day = (d) => d === today ? "сьогодні" : d === yest ? "вчора" : new Date(d + "T12:00").toLocaleDateString("uk-UA", { day: "numeric", month: "long" });
+      $("recent-list").innerHTML = recent.map(([d, sec, amt]) => `<tr><td>${day(d)}</td><td>Секція ${sec}</td><td>${uah(amt)}</td></tr>`).join("");
+    }
     $("sections").innerHTML = sec.map((s, i) => {
       const p = s.total ? Math.min(100, s.yes / s.total * 100) : 0;
       return `<div class="zb-sec"><h3>Секція ${i + 1}</h3><div class="bar"><div class="bar__fill" style="width:${p.toFixed(1)}%"></div></div>
