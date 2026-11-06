@@ -84,3 +84,13 @@
 }
 @media (max-width: 400px) { .brand b { display: block; } }
 .zb [hidden] { display: none !important; }
+
+.zb-why { max-width: 780px; width: 100%; margin: 0 auto; }
+.zb-why h2 { font-size: clamp(1.4rem, 3.6vw, 2rem); }
+.zb-why__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.zb-why__item { display: grid; grid-template-columns: 48px 1fr; column-gap: 14px; align-items: start; padding: 16px 18px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; }
+.zb-why__item i { grid-row: span 2; width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; font-style: normal; font-size: 1.5rem; background: var(--green-bg); }
+.zb-why__item b { color: var(--green-d); }
+.zb-why__item span { color: var(--muted); font-size: .94rem; line-height: 1.45; }
+.zb-why__note { margin: 10px 0 0; color: var(--muted); font-size: .9rem; font-style: italic; }
+@media (max-width: 640px) { .zb-why__grid { grid-template-columns: 1fr; } }

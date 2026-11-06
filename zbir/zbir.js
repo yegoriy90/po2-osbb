@@ -82,7 +82,7 @@
     let sum = 0;
     if (answer !== "Ні") {
       sum = form.preset.value === "other" ? +String(amount.value).replace(/\D/g, "") : +form.preset.value || 0;
-      if (answer === "Так" && !sum) return say("Вкажіть, скільки посильно внести.", "err");
+      if (answer === "Так" && !sum) return say("Вкажіть, скільки готові внести.", "err");
       if (!form.contact.value.trim()) return say("Залиште телефон або Telegram, щоб ми могли написати, коли буде кошторис.", "err"), form.contact.focus();
     }
     btn.disabled = true; say("Надсилаємо…");
