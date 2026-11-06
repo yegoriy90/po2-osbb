@@ -17,6 +17,10 @@ window.SITE = {
   // Порожньо — сайт бере votes.js.
   statsUrl: "https://script.google.com/macros/s/AKfycby2ute45O4Fe5KeP90P29oZyfoOiBGD9cGvk3X7UwSIERiZWt_OjBirrTm7ONjSA-ot/exec?stats=1",
 
+  // Збір на резервне живлення (po2.kyiv.ua/zbir/): URL веб-застосунку з tools/zbir-script (закінчується на /exec).
+  // Порожньо — форма показує «скоро», цифри не вантажаться.
+  zbirUrl: "",
+
   dahUrl: "https://app.dah.in.ua/oNCk",
   dahBuilding: "Воскресенська 2В",
   botUrl: "https://t.me/PO2KYIVBOT",

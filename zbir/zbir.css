@@ -1,0 +1,86 @@
+/* Сторінка «Резервне живлення». Базові токени, шапка, кнопки, .bar — з ../styles.css */
+.topbar__in { display: flex; justify-content: space-between; }
+.zb-logo { display: grid; place-items: center; border-radius: 50%; background: var(--green-bg); font-size: 1.4rem; }
+.zb { padding-top: 8px; padding-bottom: 40px; display: grid; gap: 22px; }
+
+.zb-hero { text-align: center; padding: 40px 0 6px; }
+.zb-hero .eyebrow { border: 2.5px solid var(--orange); border-radius: 99px; padding: 8px 22px; }
+.zb-hero h1 { font-size: clamp(2rem, 6vw, 3.6rem); max-width: 18ch; margin: 0 auto .45em; }
+.zb-hero h1 span { display: block; }
+.zb-hero .lead { margin-bottom: 8px; }
+
+.zb-count { max-width: 780px; width: 100%; margin: 0 auto; padding: 28px 30px 24px; }
+.zb-count__top { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+.zb-big { display: block; font: 800 clamp(2.8rem, 9vw, 4.4rem)/1 var(--display); color: var(--green-d); font-variant-numeric: tabular-nums; }
+.zb-count__top small { color: var(--muted); font-weight: 700; }
+.zb-count__side { text-align: right; color: var(--muted); font-weight: 600; line-height: 1.35; }
+.zb-count__side b { color: var(--orange); font: 800 1.6rem var(--display); }
+.zb-count[data-state="off"] .bar__fill { width: 0 !important; }
+
+.zb-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 22px; }
+.zb-stats div { background: var(--green-bg); border-radius: 16px; padding: 14px 16px; }
+.zb-stats b { display: block; font: 800 1.35rem var(--display); color: var(--green-d); }
+.zb-stats span { display: block; font-size: .85rem; color: var(--muted); line-height: 1.35; margin-top: 2px; }
+
+.zb-sections { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+.zb-sec { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+.zb-sec h3 { margin: 0 0 6px; font-size: .95rem; color: var(--brown); }
+.zb-sec .bar { height: 8px; margin: 6px 0 8px; }
+.zb-sec p { margin: 0; font-size: .85rem; color: var(--muted); line-height: 1.4; }
+.zb-sec p b { color: var(--text); }
+
+.zb-how { max-width: 780px; width: 100%; margin: 0 auto; }
+.zb-how h2, .zb-form h2 { font-size: clamp(1.4rem, 3.6vw, 2rem); }
+.zb-steps { list-style: none; counter-reset: s; padding: 0; margin: 0; display: grid; gap: 12px; }
+.zb-steps li { counter-increment: s; position: relative; padding: 16px 18px 16px 66px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; }
+.zb-steps li::before { content: counter(s); position: absolute; left: 18px; top: 16px; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font: 800 1rem var(--display); color: #fff; background: linear-gradient(135deg, var(--green-l), var(--green)); }
+.zb-steps b { display: block; color: var(--green-d); }
+.zb-steps span { color: var(--muted); font-size: .96rem; }
+
+.zb-form { max-width: 780px; width: 100%; margin: 0 auto; padding: 28px 30px; scroll-margin-top: 84px; }
+.zb-form form { display: grid; gap: 18px; }
+.zb-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.zb-field { display: grid; gap: 6px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.zb-field > span, .zb-field legend { font-weight: 800; color: var(--brown); font-size: .95rem; padding: 0; margin-bottom: 6px; }
+.zb-field i { font-style: normal; font-weight: 600; color: var(--muted); }
+.zb-field small { color: var(--muted); font-size: .85rem; }
+.zb-field input:not([type="radio"]) { width: 100%; height: 52px; padding: 0 16px; border: 1.5px solid var(--line); border-radius: 14px; font: 600 1.05rem Manrope, sans-serif; color: var(--text); background: #fffdf8; }
+.zb-field input:focus { outline: none; border-color: var(--green-l); box-shadow: 0 0 0 4px var(--green-bg); }
+.zb-field input[aria-invalid="true"] { border-color: var(--red); }
+#amount { margin-top: 10px; max-width: 240px; }
+.zb-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.zb-chips label { position: relative; }
+.zb-chips input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.zb-chips span { display: inline-flex; align-items: center; min-height: 46px; padding: 0 20px; border-radius: 99px; border: 1.5px solid var(--line); background: #fffdf8; font-weight: 800; cursor: pointer; transition: background .15s, border-color .15s; }
+.zb-chips input:focus-visible + span { box-shadow: 0 0 0 4px var(--green-bg); }
+.zb-chips input:checked + span { background: var(--green); border-color: var(--green); color: #fff; }
+.zb-chips[data-name="answer"] input[value="Ні"]:checked + span { background: var(--muted); border-color: var(--muted); }
+.zb-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.zb-privacy { margin: 0; padding: 12px 14px; border-radius: 14px; background: var(--green-bg); font-size: .9rem; color: var(--green-d); font-weight: 600; }
+.zb-form .btn { justify-self: start; min-width: 220px; }
+.zb-form .btn[disabled] { opacity: .55; cursor: default; transform: none; }
+.zb-msg { margin: 0; font-weight: 700; }
+.zb-msg:empty { display: none; }
+.zb-msg.ok { color: var(--green-d); }
+.zb-msg.err { color: var(--red); }
+
+.zb-cta { max-width: 780px; width: 100%; margin: 0 auto; display: flex; gap: 18px; align-items: center; justify-content: space-between; padding: 22px 24px; background: var(--green-bg); }
+.zb-cta h3 { margin: 0 0 4px; color: var(--green-d); }
+.zb-cta p { margin: 0; color: var(--muted); font-size: .95rem; }
+.zb-cta .btn { white-space: nowrap; }
+
+@media (max-width: 760px) { .zb-sections { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) {
+  .zb-hero { padding-top: 28px; }
+  .zb-count, .zb-form { padding: 22px 18px; }
+  .zb-stats { grid-template-columns: 1fr; }
+  .zb-stats div { display: flex; align-items: baseline; gap: 12px; }
+  .zb-stats b { flex: 0 0 auto; min-width: 90px; }
+  .zb-stats br { display: none; }
+  .zb-row { grid-template-columns: 1fr; }
+  .zb-form .btn { justify-self: stretch; }
+  .zb-cta { flex-direction: column; align-items: stretch; }
+  .topbar .pill { padding: 8px 12px; font-size: .85rem; }
+}
+@media (max-width: 400px) { .brand b { display: block; } }
+.zb [hidden] { display: none !important; }
