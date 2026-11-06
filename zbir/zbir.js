@@ -78,6 +78,14 @@
   form.addEventListener("change", sync);
   sync();
 
+  // «20 000», «20000», «20.000», «20,000», «20000,00», «20 000 грн» → 20000
+  function parseAmount(v) {
+    v = String(v || "").replace(/[^\d.,]/g, "");
+    if (/^\d{1,3}([.,]\d{3})+$/.test(v)) return +v.replace(/[.,]/g, "");
+    const n = parseFloat(v.replace(",", "."));
+    return isFinite(n) ? Math.round(n) : 0;
+  }
+
   function validApt(v) {
     v = v.replace(/\s+/g, "").replace(/[–—]/g, "-");
     if (v === "337-1" || v === "337-2") return v;
@@ -98,7 +106,8 @@
     if (!answer) return say("Оберіть: так, подумаю чи ні.", "err");
     let sum = 0;
     if (answer !== "Ні") {
-      sum = form.preset.value === "other" ? +String(amount.value).replace(/\D/g, "") : +form.preset.value || 0;
+      sum = form.preset.value === "other" ? parseAmount(amount.value) : +form.preset.value || 0;
+      if (sum > 100000) return say(`Сума ${uah(sum)} виглядає завеликою. Перевірте, будь ласка, або напишіть у бот.`, "err"), amount.focus();
       if (answer === "Так" && !sum) return say("Вкажіть, скільки готові внести.", "err");
       if (!form.contact.value.trim()) return say("Залиште телефон або Telegram, щоб ми могли написати, коли буде кошторис.", "err"), form.contact.focus();
     }

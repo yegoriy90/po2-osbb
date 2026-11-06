@@ -18,7 +18,7 @@ const Z = {
   first: 4,
   sections: [1, 211, 367, 477],   // перші квартири секцій (як у data.js)
   answers: ['Так', 'Подумаю', 'Ні'],
-  maxAmount: 100000,
+  maxAmount: 1000000,
   perAptPerHour: 5,
 };
 
@@ -34,7 +34,7 @@ function doPost(e) {
 
   const apt = String(f.apt || '').trim().replace(/\s+/g, '').replace(/[–—]/g, '-');
   const answer = Z.answers.indexOf(f.answer) >= 0 ? f.answer : '';
-  const amount = Math.round(Number(String(f.amount || '').replace(/[^\d.]/g, '')) || 0);
+  const amount = typeof f.amount === 'number' ? Math.round(f.amount) : Math.round(Number(String(f.amount || '').replace(/[^\d]/g, '')) || 0);
   const name = String(f.name || '').trim().slice(0, 60);
   const contact = String(f.contact || '').trim().slice(0, 60);
   if (!apt) return json_({ ok: false, error: 'Вкажіть номер квартири' });
