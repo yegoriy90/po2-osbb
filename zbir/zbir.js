@@ -4,6 +4,7 @@
   const S = window.SITE || {};
   const URL_ = S.zbirUrl || "";
   const TOTAL = 725;
+  const GOAL = S.zbirGoal || 250000; // на секцію
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => Math.round(n).toLocaleString("uk-UA").replace(/,/g, " ");
   const uah = (n) => fmt(n) + " грн";
@@ -20,8 +21,9 @@
     $("count").dataset.state = "ok";
     $("c-yes").textContent = fmt(yes);
     $("c-pledged").textContent = uah(pledged);
-    $("bar-fill").style.width = Math.min(100, (yes / TOTAL) * 100).toFixed(1) + "%";
-    $("c-meta").innerHTML = `<b>${(yes / TOTAL * 100).toLocaleString("uk-UA", { maximumFractionDigits: 1 })}%</b> квартир будинку`;
+    const goalAll = GOAL * (sec.length || 4), pg = pledged / goalAll * 100;
+    $("bar-fill").style.width = Math.min(100, pg).toFixed(1) + "%";
+    $("c-meta").innerHTML = `<b>${pg.toLocaleString("uk-UA", { maximumFractionDigits: 1 })}%</b> мінімальної цілі ${uah(goalAll)} · ${(yes / TOTAL * 100).toLocaleString("uk-UA", { maximumFractionDigits: 1 })}% квартир`;
     if (st.updatedAt) {
       const d = new Date(st.updatedAt);
       $("c-updated").textContent = "Оновлено " + d.toLocaleString("uk-UA", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
@@ -47,9 +49,9 @@
       $("recent-list").innerHTML = recent.map(([d, sec, amt]) => `<tr><td>${day(d)}</td><td>Секція ${sec}</td><td>${uah(amt)}</td></tr>`).join("");
     }
     $("sections").innerHTML = sec.map((s, i) => {
-      const p = s.total ? Math.min(100, s.yes / s.total * 100) : 0;
+      const p = Math.min(100, s.pledged / GOAL * 100);
       return `<div class="zb-sec"><h3>Секція ${i + 1}</h3><div class="bar"><div class="bar__fill" style="width:${p.toFixed(1)}%"></div></div>
-        <p><b>${s.yes}</b> ${plural(s.yes, "квартира", "квартири", "квартир")} «так»${s.maybe ? ` · ${s.maybe} думають` : ""}<br>${uah(s.pledged)}</p></div>`;
+        <p><b>${uah(s.pledged)}</b><span class="zb-sec__goal">з ${uah(GOAL)} · ${Math.round(s.pledged / GOAL * 100)}%</span>${s.yes} ${plural(s.yes, "квартира", "квартири", "квартир")} «так»${s.maybe ? ` · ${s.maybe} думають` : ""}</p></div>`;
     }).join("");
   }
   function idle(text) {
