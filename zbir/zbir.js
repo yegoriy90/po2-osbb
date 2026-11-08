@@ -96,6 +96,38 @@
     return n >= 1 && n <= 725 && n !== 337 ? String(n) : "";
   }
 
+  // ---------------- вікно «Заявку прийнято»
+  const modal = $("done");
+  function showDone(status, apt, answer, sum) {
+    const review = status === "review";
+    $("done-icon").classList.toggle("warn", review);
+    $("done-title").textContent = review ? "Заявку отримали" : answer === "Ні" ? "Відповідь врахували" : "Заявку прийнято!";
+    $("done-text").innerHTML = review
+      ? `Для квартири <b>${apt}</b> вже є відповідь з іншим контактом. Ініціативна група перевірить і зв'яжеться з вами.`
+      : answer === "Так"
+        ? `Квартира <b>${apt}</b> · <b>${uah(sum)}</b>. Це ще не оплата: напишемо вам, коли буде кошторис. Передумаєте — надішліть форму ще раз з тим самим контактом.`
+        : answer === "Подумаю"
+          ? `Квартира <b>${apt}</b> · «Подумаю». Напишемо вам, коли буде кошторис.`
+          : `Квартира <b>${apt}</b>. Дякуємо за відповідь!`;
+    $("done-share").hidden = answer === "Ні";
+    modal.hidden = false;
+    document.body.style.overflow = "hidden";
+    $("done-close").focus();
+  }
+  function hideDone() {
+    modal.hidden = true;
+    document.body.style.overflow = "";
+    $("count").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  $("done-close").addEventListener("click", hideDone);
+  modal.addEventListener("click", (e) => { if (e.target === modal) hideDone(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) hideDone(); });
+  $("done-share").addEventListener("click", () => {
+    const url = "https://po2.kyiv.ua/zbir/", text = "Скидаємося на резервне живлення будинку: вода й тепло без світла. Запишіться, скільки готові внести:";
+    if (navigator.share) navigator.share({ title: "Резервне живлення — Паркові Озера 2", text, url }).catch(() => {});
+    else if (navigator.clipboard) navigator.clipboard.writeText(text + " " + url).then(() => { $("done-share").textContent = "Посилання скопійовано ✓"; });
+  });
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     if (!URL_) return;
@@ -113,7 +145,7 @@
       if (answer === "Так" && !sum) return say("Вкажіть, скільки готові внести.", "err");
       if (!form.contact.value.trim()) return say("Залиште телефон або Telegram, щоб ми могли написати, коли буде кошторис.", "err"), form.contact.focus();
     }
-    btn.disabled = true; say("Надсилаємо…");
+    btn.disabled = true; btn.textContent = "Надсилаємо…"; say("Надсилаємо…");
     const body = JSON.stringify({ apt, answer, amount: sum, name: form.name.value, contact: answer === "Ні" ? "" : form.contact.value, website: form.website.value });
     // text/plain — «простий» запит без preflight, Apps Script віддає відповідь з CORS *
     fetch(URL_, { method: "POST", body, headers: { "Content-Type": "text/plain;charset=utf-8" } })
@@ -123,10 +155,11 @@
         say(res.status === "review"
           ? "Дякуємо! Для цієї квартири вже є відповідь з іншим контактом, тож ініціативна група перевірить і зв'яжеться з вами."
           : answer === "Ні" ? "Дякуємо, відповідь врахували." : "Дякуємо! Вас записано. Напишемо, коли буде кошторис.", "ok");
+        showDone(res.status, apt, answer, sum);
         if (res.stats) render(res.stats);
         form.reset(); sync();
       })
       .catch((err) => say(err.message && err.message !== "Failed to fetch" ? err.message : "Не вдалося надіслати. Спробуйте ще раз або напишіть у бот.", "err"))
-      .finally(() => { btn.disabled = false; });
+      .finally(() => { btn.disabled = false; btn.textContent = "Надіслати"; });
   });
 })();
