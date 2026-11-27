@@ -1,0 +1,16 @@
+# ТИМЧАСОВИЙ: аватарки закладів з Instagram (og:image). Видалити після.
+name: probe
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          for n in skyfall.beauty.studio lafam_kyiv nenamazana_; do
+            echo "### $n"
+            H=$(curl -sS -L -m 30 -A "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)" "https://www.instagram.com/$n/")
+            U=$(echo "$H" | grep -o '<meta property="og:image" content="[^"]*"' | head -1 | sed 's/.*content="//; s/"$//; s/&amp;/\&/g')
+            echo "og: ${U:0:120}"
+            [ -n "$U" ] || { echo "$H" | head -c 300; continue; }
+            curl -sS -L -m 30 -o a.jpg "$U" && convert a.jpg -resize 320x320^ -gravity center -extent 320x320 -quality 82 b.jpg && echo "B64START" && base64 -w0 b.jpg && echo && echo "B64END"
+          done
