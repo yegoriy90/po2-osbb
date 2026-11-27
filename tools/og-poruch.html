@@ -1,0 +1,75 @@
+<!doctype html>
+<!-- Прев'ю сторінки /poruch/ (1200×630). Знімок робить tools/build_og.js → img/og-poruch.png
+     Статичне: карта ЖК з контурами секцій (як у poruch.js), іконки — ілюстрація, не реальні заклади. -->
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Unbounded:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body { font-family: Manrope, system-ui, sans-serif; color: #fff; position: relative;
+    background: radial-gradient(70% 90% at 85% 40%, #3d5a1f 0%, #1d3a16 52%, #122608 100%); }
+  .txt { position: absolute; left: 64px; top: 60px; width: 560px; }
+  .eyebrow { font-weight: 700; font-size: 22px; color: #b9d98f; }
+  h1 { font-family: Unbounded, sans-serif; font-weight: 800; font-size: 66px; line-height: 1.04; margin-top: 18px; }
+  h1 span { color: #ffbf4d; }
+  ul { list-style: none; padding: 0; margin-top: 38px; display: grid; gap: 16px; }
+  li { display: flex; align-items: center; gap: 16px; font-size: 25px; font-weight: 700; color: #e6eedb; }
+  li i { flex: 0 0 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font-style: normal; font-size: 23px; background: rgba(255, 255, 255, .1); }
+  .url { position: absolute; left: 64px; bottom: 48px; font-weight: 800; font-size: 26px; }
+  .url::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #ffbf4d; margin-right: 12px; vertical-align: 3px; box-shadow: 0 0 12px #ffbf4d; }
+
+  .map { position: absolute; right: 48px; top: 48px; width: 520px; height: 534px; border-radius: 34px; background: #faf6ee;
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .55); overflow: hidden; }
+  .map svg { width: 100%; height: 100%; display: block; }
+  .yard { fill: #e3eed6; stroke: #cfe0bb; stroke-width: 2; }
+  .bld { fill: #fff; stroke: #d9d1bf; stroke-width: 2; stroke-linejoin: round; }
+  .badge circle { fill: #2f6a1c; } .badge text { fill: #fff; font: 800 26px Unbounded, sans-serif; text-anchor: middle; }
+  .u--yard { fill: #cfe3b8; stroke: #4e8f27; stroke-width: 3; } .u--street { fill: #fff; stroke: #b9b2a0; stroke-width: 3; }
+  .pin circle { fill: #fff; stroke: #4e8f27; stroke-width: 4; } .pin text { font-size: 30px; text-anchor: middle; }
+  .bolt { font-size: 22px; text-anchor: middle; }
+  .street { font: 700 22px Manrope, sans-serif; fill: #a39d8b; text-anchor: middle; letter-spacing: .06em; }
+  .yard__t { font: 700 24px Manrope, sans-serif; fill: #8aa96d; text-anchor: middle; }
+  .tag { position: absolute; left: 22px; bottom: 22px; display: inline-flex; align-items: center; gap: 10px; height: 46px; padding: 0 18px;
+    border-radius: 99px; background: linear-gradient(135deg, #ff9d3d, #ff8a1f); font-weight: 800; font-size: 19px; box-shadow: 0 10px 22px -10px rgba(255, 138, 31, .9); }
+</style>
+</head>
+<body>
+  <div class="txt">
+    <div class="eyebrow">ЖК «Паркові Озера 2» · Воскресенська, 2В</div>
+    <h1>Поруч<br>у <span>нашому ЖК</span></h1>
+    <ul>
+      <li><i>🟢</i>Що відкрито просто зараз</li>
+      <li><i>🎁</i>Акції для мешканців ПО2</li>
+      <li><i>⚡</i>Хто працює без світла</li>
+    </ul>
+  </div>
+  <div class="url">po2.kyiv.ua/poruch</div>
+
+  <div class="map">
+    <svg viewBox="70 0 940 750" id="map"></svg>
+    <div class="tag">📍 Ваш заклад тут — безкоштовно</div>
+  </div>
+<script>
+  // Ті самі контури й приміщення, що й на сторінці (poruch/poruch.js)
+  const SH = ["102,731 97,712 181,478 245,473 283,477 271,515 225,640 210,681 181,707 117,731",
+    "237,93 259,78 343,77 435,47 443,65 335,361 312,384 282,396 241,423 231,366 234,183",
+    "530,62 735,58 740,135 712,150 560,152 532,136",
+    "781,288 803,299 864,327 963,383 971,447 900,464 914,528 941,661 920,678 862,646 833,610 773,296"];
+  const YARD = "300,440 335,361 443,65 528,92 540,152 735,150 770,296 830,610 800,690 250,692 225,640 271,515";
+  const U = [[108,690,0],[140,602,0],[166,522,0],[206,700,1],[226,652,1],[243,604,1],[261,556,1],[296,500,1],[214,330,0],[220,150,0],[300,62,0],[400,46,0],
+    [318,412,1],[346,346,1],[371,280,1],[396,212,1],[422,142,1],[525,43,0],[690,43,0],[515,168,1],[578,168,1],[640,168,1],[702,168,1],
+    [885,335,0],[980,425,0],[952,640,0],[768,345,1],[781,415,1],[795,488,1],[810,565,1]];
+  const PINS = [[371,280,"☕",1],[885,335,"🛒",1],[243,604,"💇",0],[690,43,"💊",0],[640,168,"🧸",0]];
+  const used = new Set(PINS.map(([x, y]) => x + "," + y));
+  document.getElementById("map").innerHTML = `
+    <polygon class="yard" points="${YARD}"/><text class="yard__t" x="560" y="440">двір · стилобат</text>
+    <g style="filter: drop-shadow(0 6px 8px rgba(60,50,20,.22))">${SH.map((p) => `<polygon class="bld" points="${p}"/>`).join("")}</g>
+    ${[[1,176,640],[2,300,150],[3,610,108],[4,880,560]].map(([n,x,y]) => `<g class="badge" transform="translate(${x} ${y})"><circle r="24"/><text dy="9">${n}</text></g>`).join("")}
+    <text class="street" x="640" y="16">вул. Воскресенська</text>
+    ${U.filter(([x, y]) => !used.has(x + "," + y)).map(([x, y, yd]) => `<circle class="${yd ? "u--yard" : "u--street"}" cx="${x}" cy="${y}" r="12"/>`).join("")}
+    ${PINS.map(([x, y, e, b]) => `<g class="pin" transform="translate(${x} ${y})"><circle r="32"/><text dy="11">${e}</text>${b ? '<text class="bolt" x="24" y="-18">⚡</text>' : ""}</g>`).join("")}`;
+</script>
+</body>
+</html>

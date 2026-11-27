@@ -2,11 +2,12 @@
 //   tools/og.html        → img/og.png         (головна; бере data.js + votes.js — запускати після build_votes.py)
 //   tools/og-svitlo.html → img/og-svitlo.png  (сторінка «Світло»; статичне)
 //   tools/og-zbir.html   → img/og-zbir.png    (сторінка «Резервне живлення»; статичне)
+//   tools/og-poruch.html → img/og-poruch.png  (сторінка «Поруч»; статичне)
 // Запуск:  node tools/build_og.js
 const path = require("path");
 const { chromium } = require("playwright");
 
-const SHOTS = [["og.html", "og.png"], ["og-svitlo.html", "og-svitlo.png"], ["og-zbir.html", "og-zbir.png"]];
+const SHOTS = [["og.html", "og.png"], ["og-svitlo.html", "og-svitlo.png"], ["og-zbir.html", "og-zbir.png"], ["og-poruch.html", "og-poruch.png"]];
 
 (async () => {
   const root = path.join(__dirname, "..");
