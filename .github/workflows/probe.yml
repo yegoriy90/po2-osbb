@@ -1,0 +1,20 @@
+# ТИМЧАСОВИЙ: логотипи закладів. Видалити після.
+name: probe
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          get() { # $1 name, $2 url
+            echo "### $1 $2"
+            curl -sS -L -m 40 -A "Mozilla/5.0" -D h.txt -o a.bin "$2" || return
+            grep -iE "^HTTP|content-type|content-length|^x-" h.txt | tail -6
+            file a.bin
+            if file a.bin | grep -qiE "image|JPEG|PNG|WebP|GIF"; then
+              convert a.bin[0] -resize 320x320^ -gravity center -extent 320x320 -background white -flatten -quality 85 b.jpg && identify b.jpg && echo "B64START $1" && base64 -w0 b.jpg && echo && echo "B64END"
+            fi
+          }
+          for n in skyfall.beauty.studio lafam_kyiv nenamazana_; do get "unavatar-$n" "https://unavatar.io/instagram/$n?fallback=false"; done
+          H=$(curl -sS -L -m 30 -A "Mozilla/5.0" https://lafam.com.ua/); echo "$H" | grep -oiE '<(meta|link)[^>]*(og:image|icon|logo)[^>]*>' | head -8
+          echo "$H" | grep -oiE '<img[^>]*logo[^>]*>' | head -3
