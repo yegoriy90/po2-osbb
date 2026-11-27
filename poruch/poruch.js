@@ -72,7 +72,7 @@
     const week = Array.from({ length: 7 }, () => []);
     if (!s) return null;
     let any = false;
-    for (const part of s.toLowerCase().replace(/[’ʼ]/g, "'").split(/[;\n]+/)) {
+    for (const part of s.toLowerCase().replace(/[’ʼ]/g, "'").split(/[;\n]+|,\s*(?=(?:пн|вт|ср|чт|пт|сб|нд|щодн))/)) {
       const days = new Set();
       if (/щодн|без вихідн|цілодоб|24\/7/.test(part)) for (let i = 0; i < 7; i++) days.add(i);
       for (const m of part.matchAll(/(пн|вт|ср|чт|пт|сб|нд)(?:\s*[-–—]\s*(пн|вт|ср|чт|пт|сб|нд))?/g)) {
@@ -119,6 +119,14 @@
 
   // ---------- Рендер ----------
   let places = [], filter = "all", lightOff = false, demo = /[?&]demo/.test(location.search);
+  const PHOTOS = []; // файли img/poruch/<нік>.jpg, що вже є в репозиторії (щоб не ловити 404)
+  // Фото: посилання з таблиці; або ім'я файлу («skyfall.jpg») з img/poruch/; або, якщо порожньо, — img/poruch/<нік в Instagram>.jpg.
+  // Немає файлу — лишається іконка категорії (img прибирається onerror).
+  const pic = (p) => {
+    if (p.photo) return /^https?:/.test(p.photo) ? p.photo : "../img/poruch/" + p.photo.replace(/^.*\//, "");
+    const nick = (p.ig || "").replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/^@/, "").split(/[/?#]/)[0].toLowerCase();
+    return PHOTOS.includes(nick) ? `../img/poruch/${nick}.jpg` : "";
+  };
   // «380…», «067…», «+38 (067)…» → +380XXXXXXXXX, щоб дзвінок працював з будь-якого телефону
   const tel = (v) => { const d = String(v).replace(/\D/g, ""); return d.length === 12 && d.startsWith("380") ? "+" + d : d.length === 10 && d.startsWith("0") ? "+38" + d : String(v).replace(/[^\d+]/g, ""); };
   const yes = (v) => /^(так|yes|1|true|✅|є)/i.test(v || "");
@@ -175,7 +183,7 @@
 
   const card = (p) => `
     <article class="pr-card${match(p) ? "" : " hide"}" id="p${p.i}" data-i="${p.i}">
-      <div class="pr-card__pic">${p.photo ? `<img src="${esc(p.photo)}" alt="" loading="lazy">` : `<span>${icon(p.cat)}</span>`}${p.bolt ? '<b class="pr-bolt" title="Має резервне живлення — працює під час відключень світла">🔋</b>' : ""}</div>
+      <div class="pr-card__pic"><span>${icon(p.cat)}</span>${pic(p) ? `<img src="${esc(pic(p))}" alt="" loading="lazy" onerror="this.remove()">` : ""}${p.bolt ? '<b class="pr-bolt" title="Має резервне живлення — працює під час відключень світла">🔋</b>' : ""}</div>
       <div class="pr-card__body">
         <h3>${esc(p.name)}</h3>
         <p class="pr-card__meta">${esc([p.cat, where(p)].filter(Boolean).join(" · "))}</p>

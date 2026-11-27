@@ -40,27 +40,43 @@ function doPost(e) {
 
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
+  let dup = 0;
   try {
     const ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName(P.sheet);
     const head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
-    const row = head.map((h) => {
-      const k = Object.keys(P.cols).find((key) => P.cols[key].test(String(h).trim()));
-      return k === 'show' ? 'ні' : k ? d[k] || '' : '';
-    });
-    sh.appendRow(row);
-    const at = sh.getLastRow();
-    const unitCol = head.findIndex((h) => P.cols.unit.test(String(h).trim()));
-    if (unitCol >= 0) sh.getRange(at, unitCol + 1).setNumberFormat('@').setValue(d.unit); // «2-6» не має стати датою
-    sh.getRange(at, 1, 1, head.length).setBackground('#fff4d6');
-    log_(ss).appendRow([new Date(), d.name, who, contact, d.cat, d.unit || (d.sec ? 'С' + d.sec + ' ' + d.side : ''), 'рядок ' + at + ' у «Заклади», Показувати = ні']);
+    const nameCol = head.findIndex((h) => P.cols.name.test(String(h).trim()));
+    const key = (v) => String(v).toLowerCase().replace(/[^a-zа-яіїєґ0-9]/g, '');
+    // Той самий заклад уже є — нового рядка не робимо, лише примітка до наявного (дублікатів не буде)
+    if (nameCol >= 0 && sh.getLastRow() > 1) {
+      const names = sh.getRange(2, nameCol + 1, sh.getLastRow() - 1, 1).getValues();
+      const i = names.findIndex((r) => key(r[0]) && key(r[0]) === key(d.name));
+      if (i >= 0) dup = i + 2;
+    }
+    const at = dup || sh.getLastRow() + 1;
+    if (dup) {
+      const cell = sh.getRange(dup, nameCol + 1);
+      cell.setNote((cell.getNote() ? cell.getNote() + '\n\n' : '') + 'Повторна заявка ' + Utilities.formatDate(new Date(), 'Europe/Kyiv', 'dd.MM HH:mm') + ':\n' +
+        [d.about, d.hours, d.phone, d.ig, d.site, d.unit, d.deal && d.deal + ' до ' + d.dealTill].filter(String).join('\n'));
+    } else {
+      const row = head.map((h) => {
+        const k = Object.keys(P.cols).find((key) => P.cols[key].test(String(h).trim()));
+        return k === 'show' ? 'ні' : k ? d[k] || '' : '';
+      });
+      // увесь рядок — як текст: «2-6» не стане датою, «067…» не втратить нуль
+      sh.getRange(at, 1, 1, head.length).setNumberFormat('@').setValues([row]).setBackground('#fff4d6');
+    }
+    const log = log_(ss), lr = log.getLastRow() + 1;
+    log.getRange(lr, 2, 1, 6).setNumberFormat('@');
+    log.getRange(lr, 1, 1, 7).setValues([[new Date(), d.name, who, contact, d.cat, d.unit || (d.sec ? 'С' + d.sec + ' ' + d.side : ''),
+      dup ? '⚠ повтор — вже є рядок ' + dup + ', нове — у примітці до назви' : 'рядок ' + at + ' у «Заклади», Показувати = ні']]);
     SpreadsheetApp.flush();
   } finally {
     lock.releaseLock();
   }
   try {
-    MailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'ПО2 · Поруч: заявка «' + d.name + '»',
+    MailApp.sendEmail(Session.getEffectiveUser().getEmail(), 'ПО2 · Поруч: ' + (dup ? 'повторна заявка' : 'заявка') + ' «' + d.name + '»',
       'Нова заявка з po2.kyiv.ua/poruch/\n\n' + d.name + ' (' + (d.cat || 'без категорії') + ')\n' + d.about + '\nКонтакт: ' + contact + (who ? ' · ' + who : '') +
-      '\n\nУ таблиці «Заклади» — жовтий рядок з «Показувати = ні». Перевір і постав «так», щоб показати на сайті.\n' + SpreadsheetApp.getActive().getUrl());
+      (dup ? '\n\nЦей заклад уже є (рядок ' + dup + '). Нового рядка не додано — зміни в примітці до назви, перенеси вручну, якщо треба.\n' : '\n\nУ таблиці «Заклади» — жовтий рядок з «Показувати = ні». Перевір і постав «так», щоб показати на сайті.\n') + SpreadsheetApp.getActive().getUrl());
   } catch (err) {} // без дозволу на пошту заявка все одно збережена
   return json_({ ok: true });
 }
