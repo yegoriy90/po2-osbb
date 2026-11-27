@@ -42,7 +42,7 @@
     <ul>
       <li><i>🟢</i>Що відкрито просто зараз</li>
       <li><i>🎁</i>Акції для мешканців ПО2</li>
-      <li><i>⚡</i>Хто працює без світла</li>
+      <li><i>🔋</i>Хто працює під час відключень</li>
     </ul>
   </div>
   <div class="url">po2.kyiv.ua/poruch</div>
@@ -69,7 +69,7 @@
     ${[[1,176,640],[2,300,150],[3,610,108],[4,880,560]].map(([n,x,y]) => `<g class="badge" transform="translate(${x} ${y})"><circle r="24"/><text dy="9">${n}</text></g>`).join("")}
     <text class="street" x="640" y="16">вул. Воскресенська</text>
     ${U.filter(([x, y]) => !used.has(x + "," + y)).map(([x, y, yd]) => `<circle class="${yd ? "u--yard" : "u--street"}" cx="${x}" cy="${y}" r="12"/>`).join("")}
-    ${PINS.map(([x, y, e, b]) => `<g class="pin" transform="translate(${x} ${y})"><circle r="32"/><text dy="11">${e}</text>${b ? '<text class="bolt" x="24" y="-18">⚡</text>' : ""}</g>`).join("")}`;
+    ${PINS.map(([x, y, e, b]) => `<g class="pin" transform="translate(${x} ${y})"><circle r="32"/><text dy="11">${e}</text>${b ? '<text class="bolt" x="24" y="-18">🔋</text>' : ""}</g>`).join("")}`;
 </script>
 </body>
 </html>

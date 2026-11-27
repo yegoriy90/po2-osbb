@@ -146,7 +146,7 @@
 
   const drawChips = () => {
     const cats = [...new Set(places.map((p) => p.cat).filter(Boolean))];
-    const chips = [["all", "Усі"], ["open", "🟢 Відкрито зараз"], ["bolt", "⚡ Працює без світла"], ["deal", "🎁 Акції"], ...cats.map((c) => ["cat:" + c, icon(c) + " " + c])];
+    const chips = [["all", "Усі"], ["open", "🟢 Відкрито зараз"], ["bolt", "🔋 Працюють при відключеннях"], ["deal", "🎁 Акції"], ...cats.map((c) => ["cat:" + c, icon(c) + " " + c])];
     $("#chips").innerHTML = places.length ? chips.map(([k, t]) => `<button type="button" class="pr-chip${k === filter ? " on" : ""}" data-f="${esc(k)}">${esc(t)}</button>`).join("") : "";
   };
 
@@ -157,7 +157,7 @@
       const [x, y] = [p.xy[0] + (n % 3) * 34 - (n ? 17 : 0), p.xy[1] - Math.floor(n / 3) * 34 - (n ? 8 : 0)];
       const dim = match(p) ? "" : " dim";
       return `<g class="pin${dim}${p.bolt ? " bolt" : ""}" data-i="${p.i}" transform="translate(${x} ${y})" tabindex="0" role="button" aria-label="${esc(p.name)}">
-        <circle r="26" class="pin__c ${p.st?.open ? "open" : p.st ? "closed" : ""}"/><text class="pin__t" dy="9">${icon(p.cat)}</text>${p.bolt ? '<text class="pin__b" x="19" y="-14">⚡</text>' : ""}</g>`;
+        <circle r="26" class="pin__c ${p.st?.open ? "open" : p.st ? "closed" : ""}"/><text class="pin__t" dy="9">${icon(p.cat)}</text>${p.bolt ? '<text class="pin__b" x="19" y="-14">🔋</text>' : ""}</g>`;
     }).join("");
     const taken = new Set(places.map((p) => p.unit));
     const units = Object.entries(UNITS).filter(([k]) => !taken.has(k))
@@ -175,10 +175,11 @@
 
   const card = (p) => `
     <article class="pr-card${match(p) ? "" : " hide"}" id="p${p.i}" data-i="${p.i}">
-      <div class="pr-card__pic">${p.photo ? `<img src="${esc(p.photo)}" alt="" loading="lazy">` : `<span>${icon(p.cat)}</span>`}${p.bolt ? '<b class="pr-bolt" title="Працює без світла">⚡<span> без світла</span></b>' : ""}</div>
+      <div class="pr-card__pic">${p.photo ? `<img src="${esc(p.photo)}" alt="" loading="lazy">` : `<span>${icon(p.cat)}</span>`}${p.bolt ? '<b class="pr-bolt" title="Має резервне живлення — працює під час відключень світла">🔋</b>' : ""}</div>
       <div class="pr-card__body">
         <h3>${esc(p.name)}</h3>
         <p class="pr-card__meta">${esc([p.cat, where(p)].filter(Boolean).join(" · "))}</p>
+        ${p.bolt ? `<p class="pr-power-ok" title="Має резервне живлення — працює, навіть коли світла немає">🔋 Працює при відключеннях</p>` : ""}
         ${p.st ? `<p class="pr-st ${p.st.open ? "on" : "off"}"><i></i>${esc(p.st.text)}</p>` : ""}
         ${p.about ? `<p class="pr-card__about">${esc(p.about)}</p>` : ""}
         ${p.dealOn ? `<p class="pr-card__deal">🎁 ${esc(p.deal)}${p.tillText ? ` <small>${esc(p.tillText)}</small>` : ""}</p>` : ""}
@@ -214,8 +215,8 @@
     const bolt = places.filter((p) => p.bolt);
     el.hidden = false;
     el.innerHTML = bolt.length
-      ? `<b>🕯 Світла немає.</b> Працюють без світла: ${bolt.map((p) => esc(p.name)).join(", ")}. <button type="button" class="pr-chip on" data-f="bolt">Показати ⚡</button>`
-      : `<b>🕯 Світла немає.</b> Поки жоден заклад не позначив роботу без світла.`;
+      ? `<b>🕯 Світла немає.</b> Мають резервне живлення й працюють: ${bolt.map((p) => esc(p.name)).join(", ")}. <button type="button" class="pr-chip on" data-f="bolt">Показати 🔋</button>`
+      : `<b>🕯 Світла немає.</b> Поки жоден заклад не позначив роботу під час відключень.`;
   };
 
   const draw = () => { places.forEach((p) => (p.st = status(p.week))); drawChips(); drawMap(); drawList(); drawDeals(); drawPower(); };
@@ -286,7 +287,7 @@
       .finally(() => ($("#add-send").disabled = false));
   });
 
-  // Світло: коли його немає — показуємо, хто працює без світла
+  // Світло: коли його немає — показуємо, хто працює на резервному живленні
   if (window.Power) Power.watch((d) => {
     const last = d.events[d.events.length - 1];
     const off = !!last && !last.on;

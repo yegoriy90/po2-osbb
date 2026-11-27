@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Поруч — Паркові Озера 2</title>
-  <meta name="description" content="Кав'ярні, магазини й сервіси на першому поверсі та у дворі ЖК «Паркові Озера 2»: години роботи, акції для мешканців, хто працює без світла.">
+  <meta name="description" content="Кав'ярні, магазини й сервіси на першому поверсі та у дворі ЖК «Паркові Озера 2»: години роботи, акції для мешканців, хто працює під час відключень світла.">
   <meta property="og:title" content="Поруч у «Паркових Озерах 2»">
-  <meta property="og:description" content="Заклади нашого ЖК: що відкрито зараз, акції для мешканців і хто працює без світла.">
+  <meta property="og:description" content="Заклади нашого ЖК: що відкрито зараз, акції для мешканців і хто працює під час відключень світла.">
   <meta property="og:url" content="https://po2.kyiv.ua/poruch/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="ОСББ «Паркові Озера 2»">
@@ -14,7 +14,7 @@
   <meta property="og:image" content="https://po2.kyiv.ua/img/og-poruch.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Карта ЖК «Паркові Озера 2» із закладами: що відкрито, акції, хто працює без світла">
+  <meta property="og:image:alt" content="Карта ЖК «Паркові Озера 2» із закладами: що відкрито, акції, хто працює під час відключень світла">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="canonical" href="https://po2.kyiv.ua/poruch/">
   <meta name="theme-color" content="#3d7a22">
@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles.css?v=20261128b">
-  <link rel="stylesheet" href="poruch.css?v=20261128d">
+  <link rel="stylesheet" href="poruch.css?v=20261128e">
 </head>
 <body>
   <header class="topbar">
@@ -39,7 +39,7 @@
     <section class="pr-hero">
       <p class="eyebrow">Перший поверх і двір</p>
       <h1>Поруч у <span class="hl">нашому ЖК</span></h1>
-      <p class="pr-lead">Кав'ярні, магазини й сервіси в усіх чотирьох секціях — з боку вулиці й у дворі на стилобаті. Що відкрито зараз, акції для мешканців і хто працює без світла.</p>
+      <p class="pr-lead">Кав'ярні, магазини й сервіси в усіх чотирьох секціях — з боку вулиці й у дворі на стилобаті. Що відкрито зараз, акції для мешканців і хто працює під час відключень світла.</p>
     </section>
 
     <div class="pr-power" id="power" hidden></div>
@@ -54,7 +54,7 @@
     <section class="pr-grid">
       <div class="card pr-map">
         <svg id="map" viewBox="70 0 940 750" role="img" aria-label="Схема ЖК: чотири секції, двір на стилобаті й заклади на першому поверсі"></svg>
-        <div class="pr-map__legend"><span><i class="dot dot--yard"></i>у дворі</span><span><i class="dot dot--street"></i>з вулиці</span><span><i class="dot dot--bolt">⚡</i>без світла</span></div>
+        <div class="pr-map__legend"><span><i class="dot dot--yard"></i>у дворі</span><span><i class="dot dot--street"></i>з вулиці</span><span><i class="dot dot--bolt">🔋</i>працює при відключеннях</span></div>
       </div>
       <div class="pr-list" id="list"></div>
     </section>
@@ -105,7 +105,7 @@
           <section class="pr-fs">
             <h4>Для мешканців ПО2</h4>
             <label class="pr-toggle"><input type="checkbox" name="noPower"><span class="pr-toggle__ui" aria-hidden="true"></span>
-              <span><b>⚡ Працюємо без світла</b><small>генератор, EcoFlow — підкажемо сусідам під час відключень</small></span></label>
+              <span><b>🔋 Працюємо під час відключень світла</b><small>є генератор, EcoFlow чи інше резервне живлення — підкажемо сусідам</small></span></label>
             <div class="pr-f2 pr-f2--deal">
               <label class="pr-f">Акція<input name="deal" maxlength="120" placeholder="напр., −10% для мешканців ПО2"></label>
               <label class="pr-f">Діє до<input name="dealTill" type="date"></label>
@@ -140,6 +140,6 @@
 
   <script src="../data.js?v=20261128a"></script>
   <script src="../power.js?v=20261128b"></script>
-  <script src="poruch.js?v=20261128c"></script>
+  <script src="poruch.js?v=20261128d"></script>
 </body>
 </html>

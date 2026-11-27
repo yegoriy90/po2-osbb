@@ -33,7 +33,7 @@
 .dot { display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; font-style: normal; font-size: .62rem; }
 .dot--yard { background: #cfe3b8; border: 2px solid var(--green); }
 .dot--street { background: #fff; border: 2px solid #b9b2a0; }
-.dot--bolt { background: var(--n-lit); }
+.dot--bolt { background: #e7f3da; width: 18px; height: 18px; font-size: .7rem; }
 
 /* SVG карти */
 .yard { fill: #e3eed6; stroke: #cfe0bb; stroke-width: 2; }
@@ -62,7 +62,7 @@
 .pr-card.sel { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255, 138, 31, .25), var(--shadow); }
 .pr-card__pic { position: relative; aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: var(--green-bg); display: grid; place-items: center; font-size: 2.6rem; }
 .pr-card__pic img { width: 100%; height: 100%; object-fit: cover; }
-.pr-bolt { position: absolute; left: 6px; bottom: 6px; border-radius: 99px; padding: 2px 8px; background: var(--n-lit); color: #3b2a08; font-size: .7rem; font-weight: 800; }
+.pr-bolt { position: absolute; right: 6px; top: 6px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: #fff; font-size: .95rem; box-shadow: 0 3px 8px rgba(60, 50, 20, .25); }
 .pr-card h3 { margin: 2px 0 2px; font-size: 1.1rem; line-height: 1.25; color: var(--green-d); }
 .pr-card__meta { margin: 0; color: var(--muted); font-size: .86rem; font-weight: 600; }
 .pr-st { margin: 8px 0 0; display: inline-flex; align-items: center; gap: 7px; font-weight: 800; font-size: .88rem; }
@@ -94,7 +94,6 @@
 @media (max-width: 560px) {
   .pr-card { grid-template-columns: 72px minmax(0, 1fr); gap: 12px; }
   .pr-card__pic { font-size: 2rem; }
-  .pr-bolt span { display: none; }
   .pr-cta { flex-direction: column; align-items: flex-start; }
 }
 
@@ -132,7 +131,7 @@
 .pr-f2--deal { grid-template-columns: 1.6fr 1fr; }
 .pr-f2[hidden] { display: none; }
 
-/* перемикач «Працюємо без світла» */
+/* перемикач «Працюємо під час відключень» */
 .pr-toggle { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1.5px solid #e4dccb; border-radius: 16px; background: #fff; cursor: pointer; transition: border-color .15s, background .15s; }
 .pr-toggle input { position: absolute; opacity: 0; pointer-events: none; }
 .pr-toggle__ui { flex: 0 0 46px; height: 28px; border-radius: 99px; background: #e4dccb; position: relative; transition: background .2s; }
@@ -165,3 +164,5 @@
   .pr-dlg__head, .pr-dlg__body, .pr-dlg__foot { padding-left: 18px; padding-right: 18px; }
   .pr-cta .btn { width: 100%; }
 }
+.pr-power-ok { display: inline-flex; align-items: center; gap: 6px; margin: 8px 8px 0 0; padding: 4px 10px; border-radius: 99px; background: #e7f3da; color: var(--green-d); font-weight: 800; font-size: .82rem; }
+.pr-power-ok + .pr-st { margin-left: 0; }
