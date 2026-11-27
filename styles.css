@@ -54,6 +54,9 @@ h3 { font-size: 1.15rem; font-weight: 800; }
 .topbar { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
 .topbar__in { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; height: 68px; gap: 12px; }
 .topbar__in .pill { justify-self: end; gap: 6px; }
+.topbar__act { justify-self: end; display: flex; align-items: center; gap: 10px; }
+.pill--ghost { height: 42px; padding: 0 16px; border: 1.5px solid var(--line); background: var(--card); color: var(--green-d); border-radius: 99px; transition: transform .15s, box-shadow .2s, border-color .2s; }
+.pill--ghost:hover { transform: translateY(-1px); box-shadow: var(--shadow); border-color: var(--green-l); }
 .pill__short { display: none; }
 
 /* Індикатор світла в шапці (дані з power.json, див. app.js) */
@@ -309,6 +312,12 @@ mark { background: linear-gradient(transparent 62%, var(--orange-l) 62%, var(--o
   .night { border-radius: 24px; }
   .section { padding: 44px 0; }
 }
+@media (max-width: 900px) {
+  .topbar .pill__long { display: none; }
+  .topbar .pill__short { display: inline; }
+  .pill--ghost { width: 42px; padding: 0; justify-content: center; }
+  .pill--ghost .pill__txt { display: none; }
+}
 @media (max-width: 560px) {
   .theses { grid-template-columns: minmax(0, 1fr); }
   .finding__body { padding: 0 16px 20px; }
@@ -321,6 +330,9 @@ mark { background: linear-gradient(transparent 62%, var(--orange-l) 62%, var(--o
   .pill__short { display: inline; }
   .pwr { height: 38px; padding: 0 11px 0 10px; gap: 7px; font-size: .85rem; }
   .pwr__next { padding-left: 7px; font-size: .78rem; }
+  .topbar__act { gap: 6px; }
+  .pill--ghost { width: 38px; height: 38px; }
+  .brand { flex: 0 0 auto; }
 }
 @media (max-width: 420px) {
   .brand b { display: none; }
@@ -329,6 +341,13 @@ mark { background: linear-gradient(transparent 62%, var(--orange-l) 62%, var(--o
   .pwr { padding: 0 10px 0 9px; gap: 6px; font-size: .82rem; }
   .pwr__dot { flex-basis: 10px; width: 10px; height: 10px; }
   .topbar .pill--orange { padding: 9px 12px; font-size: .86rem; }
+  .topbar__act { gap: 5px; }
+  .topbar .brand > span:last-child { display: none; }
+  .pill--ghost { width: 34px; height: 34px; font-size: .85rem; }
+  .topbar .pill__ico { display: none; }
+}
+@media (max-width: 380px) {
+  .pwr__next { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .pwr__dot::after { animation: none !important; }
