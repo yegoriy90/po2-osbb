@@ -119,6 +119,13 @@
 
   // ---------- Рендер ----------
   let places = [], filter = "all", lightOff = false, demo = /[?&]demo/.test(location.search);
+  // Плитка без фото: ініціали назви на кольорі, стабільному для закладу («SKYFALL» → «SK», «Кав'ярня Ранок» → «КР»)
+  const TILES = ["#2f6a1c", "#c2410c", "#7c3a8c", "#1f6f8b", "#8a5a12", "#b0305a", "#3d5a80", "#4e8f27"];
+  const mono = (n) => {
+    const w = String(n).replace(/[«»"'’ʼ()]/g, " ").split(/\s+/).filter((x) => /[\p{L}\d]/u.test(x));
+    return (w.length > 1 ? w[0][0] + w[1][0] : (w[0] || "?").slice(0, 2)).toUpperCase();
+  };
+  const tile = (n) => TILES[[...String(n)].reduce((h, c) => (h * 31 + c.codePointAt(0)) >>> 0, 7) % TILES.length];
   const PHOTOS = []; // файли img/poruch/<нік>.jpg, що вже є в репозиторії (щоб не ловити 404)
   // Фото: посилання з таблиці; або ім'я файлу («skyfall.jpg») з img/poruch/; або, якщо порожньо, — img/poruch/<нік в Instagram>.jpg.
   // Немає файлу — лишається іконка категорії (img прибирається onerror).
@@ -183,7 +190,7 @@
 
   const card = (p) => `
     <article class="pr-card${match(p) ? "" : " hide"}" id="p${p.i}" data-i="${p.i}">
-      <div class="pr-card__pic"><span>${icon(p.cat)}</span>${pic(p) ? `<img src="${esc(pic(p))}" alt="" loading="lazy" onerror="this.remove()">` : ""}${p.bolt ? '<b class="pr-bolt" title="Має резервне живлення — працює під час відключень світла">🔋</b>' : ""}</div>
+      <div class="pr-card__pic" style="--tile:${tile(p.name)}"><span class="pr-mono">${esc(mono(p.name))}</span><i class="pr-cat" title="${esc(p.cat || "")}">${icon(p.cat)}</i>${pic(p) ? `<img src="${esc(pic(p))}" alt="" loading="lazy" onerror="this.remove()">` : ""}</div>
       <div class="pr-card__body">
         <h3>${esc(p.name)}</h3>
         <p class="pr-card__meta">${esc([p.cat, where(p)].filter(Boolean).join(" · "))}</p>
