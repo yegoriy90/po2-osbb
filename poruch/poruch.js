@@ -126,7 +126,7 @@
     return (w.length > 1 ? w[0][0] + w[1][0] : (w[0] || "?").slice(0, 2)).toUpperCase();
   };
   const tile = (n) => TILES[[...String(n)].reduce((h, c) => (h * 31 + c.codePointAt(0)) >>> 0, 7) % TILES.length];
-  const PHOTOS = []; // файли img/poruch/<нік>.jpg, що вже є в репозиторії (щоб не ловити 404)
+  const PHOTOS = ["skyfall.beauty.studio", "lafam_kyiv", "nenamazana_", "coffee.aspect"]; // файли img/poruch/<нік>.jpg, що вже є в репозиторії (щоб не ловити 404)
   // Фото: посилання з таблиці; або ім'я файлу («skyfall.jpg») з img/poruch/; або, якщо порожньо, — img/poruch/<нік в Instagram>.jpg.
   // Немає файлу — лишається іконка категорії (img прибирається onerror).
   const pic = (p) => {
