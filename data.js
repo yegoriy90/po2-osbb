@@ -28,7 +28,7 @@ window.SITE = {
   botUrl: "https://t.me/PO2KYIVBOT",
   // Сторінка «Поруч» (/poruch/): веб-застосунок Apps Script у таблиці «ПО2 · Комерція (публічна)»
   // (tools/poruch-script): GET ?places=1 — заклади, POST — форма «Додати заклад». Порожньо — «Заклади додаються», форма «скоро».
-  poruchUrl: "",
+  poruchUrl: "https://script.google.com/macros/s/AKfycbzQhALitDX_kt7c8xNa1hMI3ZV6R9v31uJWegc6T4-Rdu-ktzTMhgUnqksLmdjQvNyceA/exec",
   poruchCsv: "", // запасний варіант: опублікований CSV аркуша «Заклади»
   botName: "@PO2KYIVBOT",
 
