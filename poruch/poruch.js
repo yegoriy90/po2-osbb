@@ -119,6 +119,8 @@
 
   // ---------- Рендер ----------
   let places = [], filter = "all", lightOff = false, demo = /[?&]demo/.test(location.search);
+  // «380…», «067…», «+38 (067)…» → +380XXXXXXXXX, щоб дзвінок працював з будь-якого телефону
+  const tel = (v) => { const d = String(v).replace(/\D/g, ""); return d.length === 12 && d.startsWith("380") ? "+" + d : d.length === 10 && d.startsWith("0") ? "+38" + d : String(v).replace(/[^\d+]/g, ""); };
   const yes = (v) => /^(так|yes|1|true|✅|є)/i.test(v || "");
   const where = (p) => {
     const u = UNITS[p.unit];
@@ -182,7 +184,7 @@
         ${p.dealOn ? `<p class="pr-card__deal">🎁 ${esc(p.deal)}${p.tillText ? ` <small>${esc(p.tillText)}</small>` : ""}</p>` : ""}
         ${p.hours ? `<details class="pr-card__hours"><summary>Графік</summary>${esc(p.hours).replace(/;\s*/g, "<br>")}</details>` : ""}
         <div class="pr-card__act">
-          ${p.phone ? `<a class="pr-a" href="tel:${esc(p.phone.replace(/[^\d+]/g, ""))}">📞 Подзвонити</a>` : ""}
+          ${p.phone ? `<a class="pr-a" href="tel:${esc(tel(p.phone))}">📞 Подзвонити</a>` : ""}
           ${p.ig ? `<a class="pr-a" href="${esc(/^https?:/.test(p.ig) ? p.ig : "https://instagram.com/" + p.ig.replace(/^@/, ""))}" target="_blank" rel="noopener">Instagram</a>` : ""}
           ${p.site ? `<a class="pr-a" href="${esc(/^https?:/.test(p.site) ? p.site : "https://" + p.site)}" target="_blank" rel="noopener">Сайт</a>` : ""}
           ${p.xy ? `<button class="pr-a" type="button" data-map="${p.i}">📍 На карті</button>` : ""}
