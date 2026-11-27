@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Поруч — Паркові Озера 2</title>
+  <meta name="description" content="Кав'ярні, магазини й сервіси на першому поверсі та у дворі ЖК «Паркові Озера 2»: години роботи, акції для мешканців, хто працює без світла.">
+  <meta property="og:title" content="Поруч у «Паркових Озерах 2»">
+  <meta property="og:description" content="Заклади нашого ЖК: що відкрито зараз, акції для мешканців і хто працює без світла.">
+  <meta property="og:url" content="https://po2.kyiv.ua/poruch/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ОСББ «Паркові Озера 2»">
+  <meta property="og:locale" content="uk_UA">
+  <meta property="og:image" content="https://po2.kyiv.ua/img/og.png">
+  <link rel="canonical" href="https://po2.kyiv.ua/poruch/">
+  <meta name="theme-color" content="#3d7a22">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%234e8f27'/%3E%3Cpath d='M16 6a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css?v=20261127a">
+  <link rel="stylesheet" href="poruch.css?v=20261127a">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar__in">
+      <a class="brand" href="../">
+        <span class="brand__logo pr-logo" aria-hidden="true">📍</span>
+        <span><b>Поруч · ПО2</b><small>Воскресенська, 2В · заклади ЖК</small></span>
+      </a>
+      <a class="pill pill--orange" href="../">Про ОСББ →</a>
+    </div>
+  </header>
+
+  <main class="wrap pr">
+    <section class="pr-hero">
+      <p class="eyebrow">Перший поверх і двір</p>
+      <h1>Поруч у <span class="hl">нашому ЖК</span></h1>
+      <p class="pr-lead">Кав'ярні, магазини й сервіси в усіх чотирьох секціях — з боку вулиці й у дворі на стилобаті. Що відкрито зараз, акції для мешканців і хто працює без світла.</p>
+    </section>
+
+    <div class="pr-power" id="power" hidden></div>
+
+    <section class="pr-deals" id="deals" hidden>
+      <h2>Для мешканців ПО2</h2>
+      <div class="pr-deals__row" id="deals-row"></div>
+    </section>
+
+    <div class="pr-chips" id="chips" role="toolbar" aria-label="Фільтри"></div>
+
+    <section class="pr-grid">
+      <div class="card pr-map">
+        <svg id="map" viewBox="70 0 940 750" role="img" aria-label="Схема ЖК: чотири секції, двір на стилобаті й заклади на першому поверсі"></svg>
+        <div class="pr-map__legend"><span><i class="dot dot--yard"></i>у дворі</span><span><i class="dot dot--street"></i>з вулиці</span><span><i class="dot dot--bolt">⚡</i>без світла</span></div>
+      </div>
+      <div class="pr-list" id="list"></div>
+    </section>
+
+    <section class="card pr-cta">
+      <div>
+        <h3>Маєте заклад у ЖК?</h3>
+        <p>Розмістимо безкоштовно: опис, графік, акція для сусідів. Пишіть у бот — додамо за день.</p>
+      </div>
+      <a class="btn btn--green btn--sm" data-href="botUrl" target="_blank" rel="noopener">Додати заклад</a>
+    </section>
+
+    <p class="pr-src" id="src"></p>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer__in">
+      <span>ЖК «<span data-bind="complex"></span>» · <span data-bind="address"></span></span>
+      <span><a href="../">Створюємо ОСББ</a> · <a href="../svitlo/">⚡ Світло</a> · <a data-href="botUrl" target="_blank" rel="noopener" data-bind="botName"></a></span>
+    </div>
+  </footer>
+
+  <script src="../data.js?v=20261127a"></script>
+  <script src="../power.js?v=20261127a"></script>
+  <script src="poruch.js?v=20261127a"></script>
+</body>
+</html>

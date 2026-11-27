@@ -1,0 +1,99 @@
+/* Сторінка «Поруч». Базові токени й шапка — з ../styles.css */
+.topbar__in { display: flex; justify-content: space-between; }
+@media (max-width: 400px) { .brand b { display: block; } }
+.pr-logo { display: grid; place-items: center; border-radius: 50%; background: var(--green-bg); font-size: 1.3rem; }
+.pr { padding-top: 28px; padding-bottom: 44px; display: grid; gap: 20px; }
+
+.pr-hero h1 { margin: 0 0 10px; font-size: clamp(2rem, 6vw, 3.2rem); line-height: 1.05; }
+.pr-hero .eyebrow { margin-bottom: 12px; }
+.pr-lead { margin: 0; max-width: 680px; color: var(--muted); font-size: 1.08rem; }
+
+.pr-power { border-radius: 16px; padding: 14px 18px; background: #1d3a16; color: #e6f0d9; line-height: 1.5; }
+.pr-power b { color: #fff; }
+.pr-power .pr-chip { margin-left: 6px; }
+
+.pr-deals h2 { font-size: 1.3rem; margin: 0 0 12px; }
+.pr-deals__row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
+.pr-deal { flex: 0 0 min(280px, 80%); scroll-snap-align: start; text-align: left; border: 0; cursor: pointer; border-radius: 18px; padding: 16px 18px; color: #fff;
+  background: linear-gradient(135deg, #ff9d3d, var(--orange)); box-shadow: 0 14px 26px -16px rgba(255, 138, 31, .9); font: inherit; display: grid; gap: 4px; }
+.pr-deal span { font-size: 1.6rem; }
+.pr-deal b { font-size: 1.05rem; line-height: 1.3; }
+.pr-deal small { opacity: .9; font-weight: 600; }
+
+.pr-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.pr-chips:empty { display: none; }
+.pr-chip { flex: 0 0 auto; border: 1.5px solid var(--line); background: #fff; color: var(--text, #22261f); border-radius: 99px; padding: 9px 16px; font: 700 .92rem Manrope, sans-serif; cursor: pointer; white-space: nowrap; }
+.pr-chip.on { background: var(--green-d); border-color: var(--green-d); color: #fff; }
+
+.pr-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.pr-map { position: sticky; top: 86px; padding: 14px; overflow: hidden; }
+.pr-map svg { display: block; width: 100%; height: auto; }
+.pr-map__legend { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 6px 6px 2px; font-size: .85rem; color: var(--muted); font-weight: 600; }
+.pr-map__legend span { display: inline-flex; align-items: center; gap: 6px; }
+.dot { display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; font-style: normal; font-size: .62rem; }
+.dot--yard { background: #cfe3b8; border: 2px solid var(--green); }
+.dot--street { background: #fff; border: 2px solid #b9b2a0; }
+.dot--bolt { background: var(--n-lit); }
+
+/* SVG карти */
+.yard { fill: #e3eed6; stroke: #cfe0bb; stroke-width: 2; }
+.yard__t { font: 700 22px Manrope, sans-serif; fill: #8aa96d; text-anchor: middle; letter-spacing: .04em; }
+.bld { fill: #fff; stroke: #d9d1bf; stroke-width: 2; stroke-linejoin: round; }
+.badge circle { fill: var(--green-d); }
+.badge text { fill: #fff; font: 800 24px Unbounded, Manrope, sans-serif; text-anchor: middle; }
+.street { font: 700 20px Manrope, sans-serif; fill: #a39d8b; text-anchor: middle; letter-spacing: .06em; }
+.unit circle { stroke-width: 3; }
+.unit--yard circle { fill: #cfe3b8; stroke: var(--green); }
+.unit--street circle { fill: #fff; stroke: #b9b2a0; }
+.pin { cursor: pointer; transition: opacity .2s; }
+.pin.dim { opacity: .25; }
+.pin__c { fill: #fff; stroke: #b9b2a0; stroke-width: 3; filter: drop-shadow(0 4px 6px rgba(60, 50, 20, .3)); transition: r .15s; }
+.pin__c.open { stroke: var(--green); }
+.pin__c.closed { stroke: #c9c2b0; }
+.pin__t { font-size: 26px; text-anchor: middle; pointer-events: none; }
+.pin__b { font-size: 20px; text-anchor: middle; pointer-events: none; }
+.pin:hover .pin__c, .pin:focus .pin__c, .pin.sel .pin__c { r: 33; stroke: var(--orange); stroke-width: 4; }
+.pin:focus { outline: none; }
+
+/* Картки */
+.pr-list { display: grid; gap: 14px; }
+.pr-card { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 16px; padding: 14px; background: var(--card, #fff); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); transition: box-shadow .2s, border-color .2s; scroll-margin: 100px; }
+.pr-card.hide { display: none; }
+.pr-card.sel { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255, 138, 31, .25), var(--shadow); }
+.pr-card__pic { position: relative; aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: var(--green-bg); display: grid; place-items: center; font-size: 2.6rem; }
+.pr-card__pic img { width: 100%; height: 100%; object-fit: cover; }
+.pr-bolt { position: absolute; left: 6px; bottom: 6px; border-radius: 99px; padding: 2px 8px; background: var(--n-lit); color: #3b2a08; font-size: .7rem; font-weight: 800; }
+.pr-card h3 { margin: 2px 0 2px; font-size: 1.1rem; line-height: 1.25; color: var(--green-d); }
+.pr-card__meta { margin: 0; color: var(--muted); font-size: .86rem; font-weight: 600; }
+.pr-st { margin: 8px 0 0; display: inline-flex; align-items: center; gap: 7px; font-weight: 800; font-size: .88rem; }
+.pr-st i { width: 9px; height: 9px; border-radius: 50%; }
+.pr-st.on { color: var(--green); } .pr-st.on i { background: var(--green); box-shadow: 0 0 0 4px rgba(78, 143, 39, .18); }
+.pr-st.off { color: #9a8f78; } .pr-st.off i { background: #c9c2b0; }
+.pr-card__about { margin: 8px 0 0; font-size: .95rem; }
+.pr-card__deal { margin: 10px 0 0; padding: 8px 12px; border-radius: 12px; background: #fff0e2; color: #b4520f; font-weight: 800; font-size: .92rem; }
+.pr-card__deal small { font-weight: 600; opacity: .85; }
+.pr-card__hours { margin-top: 8px; font-size: .88rem; color: var(--muted); }
+.pr-card__hours summary { cursor: pointer; font-weight: 700; }
+.pr-card__act { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.pr-a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border-radius: 10px; border: 1.5px solid var(--line); background: #fff; color: var(--green-d); font: 700 .86rem Manrope, sans-serif; text-decoration: none; cursor: pointer; }
+.pr-a:hover { border-color: var(--green-l); }
+.pr-empty { padding: 22px; }
+.pr-empty b { font: 800 1.15rem var(--display); color: var(--green-d); }
+.pr-empty p { margin: 8px 0 0; color: var(--muted); }
+.pr-none { color: var(--muted); }
+
+.pr-cta { display: flex; justify-content: space-between; align-items: center; gap: 18px; padding: 22px 26px; }
+.pr-cta h3 { margin: 0 0 4px; color: var(--green-d); }
+.pr-cta p { margin: 0; color: var(--muted); }
+.pr-src { margin: 0; color: var(--muted); font-size: .86rem; }
+
+@media (max-width: 860px) {
+  .pr-grid { grid-template-columns: minmax(0, 1fr); }
+  .pr-map { position: static; padding: 8px; }
+}
+@media (max-width: 560px) {
+  .pr-card { grid-template-columns: 72px minmax(0, 1fr); gap: 12px; }
+  .pr-card__pic { font-size: 2rem; }
+  .pr-bolt span { display: none; }
+  .pr-cta { flex-direction: column; align-items: flex-start; }
+}
