@@ -97,3 +97,28 @@
   .pr-bolt span { display: none; }
   .pr-cta { flex-direction: column; align-items: flex-start; }
 }
+
+/* Форма «Додати заклад» */
+.pr-dlg { width: min(560px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); border: 0; border-radius: 24px; padding: 0; box-shadow: 0 30px 80px -20px rgba(30, 40, 20, .5); background: var(--bg, #faf6ee); }
+.pr-dlg::backdrop { background: rgba(20, 30, 15, .45); backdrop-filter: blur(3px); }
+.pr-dlg form { padding: 22px 22px 24px; display: grid; gap: 12px; }
+.pr-dlg__head { display: flex; justify-content: space-between; align-items: center; }
+.pr-dlg__head h3 { margin: 0; font: 800 1.35rem var(--display); color: var(--green-d); }
+.pr-dlg__x { border: 0; background: #fff; width: 38px; height: 38px; border-radius: 50%; font-size: 1rem; cursor: pointer; box-shadow: var(--shadow); }
+.pr-dlg__note { margin: 0; color: var(--muted); font-size: .92rem; }
+.pr-f { display: grid; gap: 4px; font-size: .84rem; font-weight: 700; color: var(--muted); }
+.pr-f input, .pr-f select { width: 100%; min-height: 44px; padding: 9px 12px; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; font: 500 1rem Manrope, sans-serif; color: inherit; }
+.pr-f input:focus, .pr-f select:focus { outline: none; border-color: var(--green-l); }
+.pr-f2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pr-f2[hidden] { display: none; }
+.pr-chk { display: flex; gap: 10px; align-items: center; font-weight: 700; font-size: .92rem; }
+.pr-chk input { width: 20px; height: 20px; accent-color: var(--green); }
+.pr-private { margin: 4px 0 0; border: 1.5px dashed var(--line); border-radius: 14px; padding: 10px 12px 12px; }
+.pr-private legend { padding: 0 6px; font-size: .82rem; font-weight: 800; color: var(--green-d); }
+.pr-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.pr-dlg__msg { margin: 0; min-height: 1.2em; font-weight: 700; font-size: .92rem; color: var(--muted); }
+.pr-dlg__msg.ok { color: var(--green); }
+.pr-dlg__msg.err { color: var(--red); }
+.pr-dlg .btn { width: 100%; }
+.pr-dlg .btn:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 480px) { .pr-f2 { grid-template-columns: 1fr; } .pr-dlg form { padding: 18px 16px 20px; } }

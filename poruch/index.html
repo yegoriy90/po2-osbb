@@ -17,8 +17,8 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%234e8f27'/%3E%3Cpath d='M16 6a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z' fill='%23fff'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles.css?v=20261127a">
-  <link rel="stylesheet" href="poruch.css?v=20261127a">
+  <link rel="stylesheet" href="../styles.css?v=20261127b">
+  <link rel="stylesheet" href="poruch.css?v=20261127b">
 </head>
 <body>
   <header class="topbar">
@@ -58,10 +58,48 @@
     <section class="card pr-cta">
       <div>
         <h3>Маєте заклад у ЖК?</h3>
-        <p>Розмістимо безкоштовно: опис, графік, акція для сусідів. Пишіть у бот — додамо за день.</p>
+        <p>Розмістимо безкоштовно: опис, графік, акція для сусідів. Заповніть коротку форму — перевіримо й додамо.</p>
       </div>
-      <a class="btn btn--green btn--sm" data-href="botUrl" target="_blank" rel="noopener">Додати заклад</a>
+      <button class="btn btn--green btn--sm" type="button" id="add-open">Додати заклад</button>
     </section>
+
+    <dialog class="pr-dlg" id="add">
+      <form id="add-form" novalidate>
+        <div class="pr-dlg__head"><h3>Додати заклад</h3><button type="button" class="pr-dlg__x" id="add-close" aria-label="Закрити">✕</button></div>
+        <p class="pr-dlg__note">Безкоштовно. Після перевірки заклад з'явиться на сторінці й на карті. Поля з * — обов'язкові.</p>
+        <label class="pr-f">Назва закладу *<input name="name" maxlength="80" required placeholder="Кав'ярня «Ранок»"></label>
+        <div class="pr-f2">
+          <label class="pr-f">Категорія<select name="cat"><option>Кава</option><option>Їжа</option><option>Продукти</option><option>Краса</option><option>Здоровʼя</option><option>Діти</option><option>Спорт</option><option>Послуги</option><option>Тварини</option><option>Інше</option></select></label>
+          <label class="pr-f">Приміщення<select name="unit" id="add-unit"></select></label>
+        </div>
+        <div class="pr-f2" id="add-where" hidden>
+          <label class="pr-f">Секція<select name="sec"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
+          <label class="pr-f">Вхід<select name="side"><option value="Вулиця">з вулиці</option><option value="Двір">з двору</option></select></label>
+        </div>
+        <label class="pr-f">Що пропонуєте *<input name="about" maxlength="200" required placeholder="Кава, випічка, сніданки"></label>
+        <label class="pr-f">Години роботи<input name="hours" maxlength="120" placeholder="Пн-Пт 8:00-21:00; Сб-Нд 9:00-20:00"></label>
+        <div class="pr-f2">
+          <label class="pr-f">Телефон для клієнтів<input name="phone" inputmode="tel" maxlength="40"></label>
+          <label class="pr-f">Instagram<input name="ig" maxlength="80" placeholder="nickname"></label>
+        </div>
+        <label class="pr-f">Сайт<input name="site" maxlength="120" inputmode="url"></label>
+        <label class="pr-chk"><input type="checkbox" name="noPower"> ⚡ Працюємо під час відключень світла (генератор, EcoFlow)</label>
+        <div class="pr-f2">
+          <label class="pr-f">Акція для мешканців<input name="deal" maxlength="120" placeholder="−10% для мешканців ПО2"></label>
+          <label class="pr-f">Діє до<input name="dealTill" type="date"></label>
+        </div>
+        <fieldset class="pr-private">
+          <legend>Для зв'язку з вами — не публікується</legend>
+          <div class="pr-f2">
+            <label class="pr-f">Контакт *<input name="contact" maxlength="80" required placeholder="телефон або @telegram"></label>
+            <label class="pr-f">Ваше ім'я<input name="who" maxlength="60"></label>
+          </div>
+        </fieldset>
+        <input class="pr-hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <p class="pr-dlg__msg" id="add-msg" role="status"></p>
+        <button class="btn btn--green" type="submit" id="add-send">Надіслати</button>
+      </form>
+    </dialog>
 
     <p class="pr-src" id="src"></p>
   </main>
@@ -73,8 +111,8 @@
     </div>
   </footer>
 
-  <script src="../data.js?v=20261127a"></script>
-  <script src="../power.js?v=20261127a"></script>
-  <script src="poruch.js?v=20261127a"></script>
+  <script src="../data.js?v=20261127b"></script>
+  <script src="../power.js?v=20261127b"></script>
+  <script src="poruch.js?v=20261127b"></script>
 </body>
 </html>

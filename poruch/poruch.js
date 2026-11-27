@@ -238,12 +238,51 @@
   const start = (list, note) => { places = list.map(enrich); draw(); $("#src").textContent = note; };
   draw();
   if (demo) start(DEMO.slice(), "Режим прикладу: заклади вигадані, щоб показати, як виглядатиме сторінка.");
-  else if (S.poruchCsv) {
+  else if (S.poruchUrl) {
+    fetch(S.poruchUrl + "?places=1", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => start(Array.isArray(d.places) ? d.places : [], "Дані надають самі заклади. Помітили помилку — надішліть виправлення через «Додати заклад»."))
+      .catch(() => start([], ""));
+  } else if (S.poruchCsv) {
     fetch(S.poruchCsv, { cache: "no-store" }).then((r) => (r.ok ? r.text() : Promise.reject()))
-      .then((t) => start(toPlaces(parseCsv(t)), "Дані: заклади самі надають інформацію. Помітили помилку — напишіть у бот."))
+      .then((t) => start(toPlaces(parseCsv(t)), "Дані надають самі заклади."))
       .catch(() => start([], ""));
   }
   setInterval(() => places.length && draw(), 60e3); // «відкрито / зачинено» оновлюється щохвилини
+
+  // ---------- Форма «Додати заклад» → Apps Script таблиці (у «Заклади» з «Показувати = ні») ----------
+  const dlg = $("#add"), form = $("#add-form"), msg = (t, cls) => { $("#add-msg").textContent = t; $("#add-msg").className = "pr-dlg__msg " + (cls || ""); };
+  $("#add-unit").innerHTML = '<option value="">Не знаю номер</option>' + Object.entries(UNITS)
+    .sort(([a], [b]) => a.localeCompare(b, "uk", { numeric: true }))
+    .map(([k, [s, side]]) => `<option value="${k}">${k} · секція ${s} · ${side === "Двір" ? "з двору" : "з вулиці"}</option>`).join("");
+  const syncWhere = () => ($("#add-where").hidden = !!$("#add-unit").value);
+  $("#add-unit").addEventListener("change", syncWhere); syncWhere();
+  $("#add-open").onclick = () => {
+    msg(S.poruchUrl ? "" : "Прийом заявок відкриється найближчим часом.");
+    $("#add-send").disabled = !S.poruchUrl;
+    dlg.showModal ? dlg.showModal() : dlg.setAttribute("open", "");
+  };
+  $("#add-close").onclick = () => dlg.close();
+  dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); }); // клік повз вікно
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const f = Object.fromEntries(new FormData(form));
+    f.noPower = !!form.noPower.checked;
+    if (f.dealTill) f.dealTill = f.dealTill.split("-").reverse().join(".");
+    if (f.unit) { f.sec = String(UNITS[f.unit][0]); f.side = UNITS[f.unit][1]; } // секція й вхід — з приміщення
+    if (!f.name.trim() || !f.about.trim()) return msg("Вкажіть назву і що пропонуєте", "err");
+    if (!f.contact.trim()) return msg("Залиште контакт — він не публікується, лише щоб уточнити деталі", "err");
+    $("#add-send").disabled = true; msg("Надсилаємо…");
+    // text/plain — «простий» запит без preflight; Apps Script відповідає з CORS *
+    fetch(S.poruchUrl, { method: "POST", body: JSON.stringify(f), headers: { "Content-Type": "text/plain;charset=utf-8" } })
+      .then((r) => r.json())
+      .then((d) => {
+        if (!d.ok) throw new Error(d.error || "Не вдалося надіслати");
+        form.reset(); syncWhere();
+        msg("Дякуємо! Заявку отримали — перевіримо й додамо заклад на сторінку.", "ok");
+      })
+      .catch((err) => msg(err.message && err.message !== "Failed to fetch" ? err.message : "Не вдалося надіслати. Спробуйте ще раз.", "err"))
+      .finally(() => ($("#add-send").disabled = false));
+  });
 
   // Світло: коли його немає — показуємо, хто працює без світла
   if (window.Power) Power.watch((d) => {
