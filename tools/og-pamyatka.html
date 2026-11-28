@@ -1,0 +1,42 @@
+<!doctype html>
+<!-- Прев'ю сторінки /pamyatka/ (1200×630). Знімок робить tools/build_og.js → img/og-pamyatka.png (статичне). Без телефонів. -->
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Unbounded:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body { font-family: Manrope, system-ui, sans-serif; color: #fff; position: relative;
+    background: radial-gradient(70% 90% at 85% 40%, #3d5a1f 0%, #1d3a16 52%, #122608 100%); }
+  .txt { position: absolute; left: 64px; top: 60px; width: 560px; }
+  .eyebrow { font-weight: 700; font-size: 22px; color: #b9d98f; }
+  h1 { font-family: Unbounded, sans-serif; font-weight: 800; font-size: 70px; line-height: 1.04; margin-top: 18px; }
+  h1 span { color: #ffbf4d; }
+  p.sub { margin-top: 24px; font-size: 25px; font-weight: 700; color: #dfe9d3; line-height: 1.4; }
+  .url { position: absolute; left: 64px; bottom: 48px; font-weight: 800; font-size: 26px; }
+  .url::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #ffbf4d; margin-right: 12px; vertical-align: 3px; box-shadow: 0 0 12px #ffbf4d; }
+  .grid { position: absolute; right: 56px; top: 56px; width: 500px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .t { height: 160px; border-radius: 26px; background: #faf6ee; color: #2f6a1c; padding: 22px; display: grid; align-content: space-between; box-shadow: 0 20px 40px -20px rgba(0,0,0,.5); }
+  .t i { font-style: normal; font-size: 44px; }
+  .t b { font-size: 24px; line-height: 1.15; }
+  .t small { display: block; font-size: 17px; color: #6b6a5e; font-weight: 700; margin-top: 4px; }
+</style>
+</head>
+<body>
+  <div class="txt">
+    <div class="eyebrow">ЖК «Паркові Озера 2» · Воскресенська, 2В</div>
+    <h1>Пам'ятка<br><span>мешканця</span></h1>
+    <p class="sub">Охорона кожної секції, УК і заявки, оплата, картки на вхід, майстри — в одному місці</p>
+  </div>
+  <div class="url">po2.kyiv.ua/pamyatka</div>
+  <div class="grid">
+    <div class="t"><i>🔨</i><div><b>Шумні роботи</b><small>Пн–Пт 9–18 · тиха 13–15</small></div></div>
+    <div class="t"><i>🛡️</i><div><b>Охорона</b><small>пост у кожній секції</small></div></div>
+    <div class="t"><i>🏢</i><div><b>УК і заявки</b><small>онлайн, з фото</small></div></div>
+    <div class="t"><i>🔑</i><div><b>Картки на вхід</b><small>замовлення й підтримка</small></div></div>
+    <div class="t"><i>🔧</i><div><b>Майстри</b><small>сантехнік, електрик, ліфти</small></div></div>
+    <div class="t"><i>💳</i><div><b>Оплата</b><small>кабінет за QR з квитанції</small></div></div>
+  </div>
+</body>
+</html>
