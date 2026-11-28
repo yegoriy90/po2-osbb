@@ -66,6 +66,7 @@
 .pr-cat { position: absolute; left: 6px; bottom: 6px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: .9rem; background: rgba(255, 255, 255, .92); }
 .pr-card__pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #fff; }
 .pr-card__pic img ~ .pr-cat, .pr-card__pic:has(img) .pr-cat { display: none; }
+.pr-card__pic:has(img) { background: #fff; outline: 1px solid var(--line); outline-offset: -1px; }
 .pr-bolt { position: absolute; right: 6px; top: 6px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: #fff; font-size: .95rem; box-shadow: 0 3px 8px rgba(60, 50, 20, .25); }
 .pr-card h3 { margin: 2px 0 2px; font-size: 1.1rem; line-height: 1.25; color: var(--green-d); }
 .pr-card__meta { margin: 0; color: var(--muted); font-size: .86rem; font-weight: 600; }
