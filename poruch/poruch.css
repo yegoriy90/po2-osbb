@@ -52,7 +52,8 @@
 .pin__c.closed { stroke: #c9c2b0; }
 .pin__t { font-size: 26px; text-anchor: middle; pointer-events: none; }
 .pin__b { font-size: 20px; text-anchor: middle; pointer-events: none; }
-.pin:hover .pin__c, .pin:focus .pin__c, .pin.sel .pin__c { r: 33; stroke: var(--orange); stroke-width: 4; }
+.pin:hover .pin__c, .pin:focus .pin__c, .pin.sel .pin__c { stroke: var(--orange); stroke-width: 5; }
+.pin image { pointer-events: none; }
 .pin:focus { outline: none; }
 
 /* Картки */

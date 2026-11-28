@@ -27,7 +27,7 @@
     s4: "781,288 803,299 864,327 963,383 971,447 900,464 914,528 941,661 920,678 862,646 833,610 773,296",
     yard: "300,440 335,361 443,65 528,92 540,152 735,150 770,296 830,610 800,690 250,692 225,640 271,515",
   };
-  const BADGES = [[1, 176, 640], [2, 300, 150], [3, 610, 108], [4, 880, 560]];
+  const BADGES = [[1, 184, 676], [2, 300, 150], [3, 610, 108], [4, 880, 560]];
 
   const CAT = { "Кава": "☕", "Їжа": "🍽", "Продукти": "🛒", "Краса": "💇", "Здоровʼя": "💊", "Здоров'я": "💊", "Діти": "🧸", "Спорт": "🏋️", "Послуги": "🛠", "Тварини": "🐾", "Пошта": "📦", "Інше": "📍" };
   const icon = (c) => CAT[c] || "📍";
@@ -63,7 +63,7 @@
   const SERVICES = [
     { name: "Фора", cat: "Продукти", unit: "2-3", photo: "fora.jpg", about: "Супермаркет біля дому · каси самообслуговування",
       hours: "щодня 08:00-23:00", site: "https://fora.ua" },
-    LOCKER(3226, 1, [196, 596], "Секція 1 · 1-й поверх, біля дверей на паркінг", "Тільки для мешканців"),
+    LOCKER(3226, 1, [226, 598], "Секція 1 · 1-й поверх, біля дверей на паркінг", "Тільки для мешканців"),
     LOCKER(3227, 2, [282, 250], "Секція 2 · 1-й поверх, біля дверей на паркінг", "Тільки для мешканців"),
     LOCKER(3228, 3, [668, 128], "Секція 3 · 2-й поверх, біля дверей на стилобат", "Для мешканців"),
     LOCKER(3229, 4, [884, 470], "Секція 4 · 1-й поверх, біля дверей на паркінг", "Тільки для мешканців"),
@@ -187,13 +187,15 @@
       const [x, y] = [p.xy[0] + (n % 3) * 34 - (n ? 17 : 0), p.xy[1] - Math.floor(n / 3) * 34 - (n ? 8 : 0)];
       const dim = match(p) ? "" : " dim";
       return `<g class="pin${dim}${p.bolt ? " bolt" : ""}" data-i="${p.i}" transform="translate(${x} ${y})" tabindex="0" role="button" aria-label="${esc(p.name)}">
-        <circle r="26" class="pin__c ${p.st?.open ? "open" : p.st ? "closed" : ""}"/><text class="pin__t" dy="9">${icon(p.cat)}</text>${p.bolt ? '<text class="pin__b" x="19" y="-14">🔋</text>' : ""}</g>`;
+        <circle r="${pic(p) ? 30 : 26}" class="pin__c ${p.st?.open ? "open" : p.st ? "closed" : ""}"/>${pic(p)
+          ? `<image href="${esc(pic(p))}" x="-26" y="-26" width="52" height="52" clip-path="url(#pc)" preserveAspectRatio="xMidYMid slice"/>`
+          : `<text class="pin__t" dy="9">${icon(p.cat)}</text>`}${p.bolt ? '<text class="pin__b" x="23" y="-18">🔋</text>' : ""}</g>`;
     }).join("");
     const taken = new Set(places.map((p) => p.unit));
     const units = Object.entries(UNITS).filter(([k]) => !taken.has(k))
       .map(([k, [, side, x, y]]) => `<g class="unit unit--${side === "Двір" ? "yard" : "street"}" transform="translate(${x} ${y})"><circle r="11"/><title>Приміщення ${k} · ${side === "Двір" ? "вхід з двору" : "вхід з вулиці"}</title></g>`).join("");
     $("#map").innerHTML = `
-      <defs><filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#3c3214" flood-opacity=".22"/></filter></defs>
+      <defs><clipPath id="pc"><circle r="26"/></clipPath><filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#3c3214" flood-opacity=".22"/></filter></defs>
       <polygon class="yard" points="${SHAPES.yard}"/>
       <text class="yard__t" x="560" y="440">двір · стилобат</text>
       <g filter="url(#sh)">${["s1", "s2", "s3", "s4"].map((k) => `<polygon class="bld" points="${SHAPES[k]}"/>`).join("")}</g>
