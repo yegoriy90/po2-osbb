@@ -63,12 +63,12 @@
     [885,335,0],[980,425,0],[952,640,0],[768,345,1],[781,415,1],[795,488,1],[810,565,1]];
   // Справжні заклади й сервіси з poruch.js: [x, y, логотип, працює при відключеннях]
   const PINS = [[140,602,"lafam_kyiv",1],[166,522,"coffee.aspect",1],[300,62,"skyfall.beauty.studio",1],[400,46,"fora",0],[768,345,"nenamazana_",1],
-    [214,330,"np-branch",0]];
+    [214,330,"np-branch",0],[226,598,"np-locker",0],[282,250,"np-locker",0],[668,128,"np-locker",0],[884,470,"np-locker",0]];
   const used = new Set(PINS.map(([x, y]) => x + "," + y));
   document.getElementById("map").innerHTML = `
     <polygon class="yard" points="${YARD}"/><text class="yard__t" x="560" y="440">двір · стилобат</text>
     <g style="filter: drop-shadow(0 6px 8px rgba(60,50,20,.22))">${SH.map((p) => `<polygon class="bld" points="${p}"/>`).join("")}</g>
-    ${[[1,212,598],[2,300,150],[3,610,108],[4,880,560]].map(([n,x,y]) => `<g class="badge" transform="translate(${x} ${y})"><circle r="24"/><text dy="9">${n}</text></g>`).join("")}
+    ${[[1,184,676],[2,300,150],[3,610,108],[4,880,560]].map(([n,x,y]) => `<g class="badge" transform="translate(${x} ${y})"><circle r="24"/><text dy="9">${n}</text></g>`).join("")}
     <text class="street" x="640" y="16">вул. Воскресенська</text>
     ${U.filter(([x, y]) => !used.has(x + "," + y)).map(([x, y, yd]) => `<circle class="${yd ? "u--yard" : "u--street"}" cx="${x}" cy="${y}" r="12"/>`).join("")}
     <defs><clipPath id="c"><circle r="30"/></clipPath></defs>
