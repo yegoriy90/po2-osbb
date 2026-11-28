@@ -1,6 +1,6 @@
 <!doctype html>
 <!-- Прев'ю сторінки /poruch/ (1200×630). Знімок робить tools/build_og.js → img/og-poruch.png
-     Статичне: карта ЖК з контурами секцій (як у poruch.js), іконки — ілюстрація, не реальні заклади. -->
+     Статичне: карта ЖК з контурами секцій (як у poruch.js) і логотипи закладів з img/poruch (оновлювати при новому закладі). -->
 <html lang="uk">
 <head>
 <meta charset="utf-8">
@@ -27,7 +27,7 @@
   .bld { fill: #fff; stroke: #d9d1bf; stroke-width: 2; stroke-linejoin: round; }
   .badge circle { fill: #2f6a1c; } .badge text { fill: #fff; font: 800 26px Unbounded, sans-serif; text-anchor: middle; }
   .u--yard { fill: #cfe3b8; stroke: #4e8f27; stroke-width: 3; } .u--street { fill: #fff; stroke: #b9b2a0; stroke-width: 3; }
-  .pin circle { fill: #fff; stroke: #4e8f27; stroke-width: 4; } .pin text { font-size: 30px; text-anchor: middle; }
+  .pin circle { fill: #fff; stroke: #fff; stroke-width: 4; filter: drop-shadow(0 4px 6px rgba(60,50,20,.35)); } .pin text { font-size: 30px; text-anchor: middle; }
   .bolt { font-size: 22px; text-anchor: middle; }
   .street { font: 700 22px Manrope, sans-serif; fill: #a39d8b; text-anchor: middle; letter-spacing: .06em; }
   .yard__t { font: 700 24px Manrope, sans-serif; fill: #8aa96d; text-anchor: middle; }
@@ -61,15 +61,18 @@
   const U = [[108,690,0],[140,602,0],[166,522,0],[206,700,1],[226,652,1],[243,604,1],[261,556,1],[296,500,1],[214,330,0],[220,150,0],[300,62,0],[400,46,0],
     [318,412,1],[346,346,1],[371,280,1],[396,212,1],[422,142,1],[525,43,0],[690,43,0],[515,168,1],[578,168,1],[640,168,1],[702,168,1],
     [885,335,0],[980,425,0],[952,640,0],[768,345,1],[781,415,1],[795,488,1],[810,565,1]];
-  const PINS = [[371,280,"☕",1],[885,335,"🛒",1],[243,604,"💇",0],[690,43,"💊",0],[640,168,"🧸",0]];
+  // Справжні заклади й сервіси з poruch.js: [x, y, логотип, працює при відключеннях]
+  const PINS = [[140,602,"lafam_kyiv",1],[166,522,"coffee.aspect",1],[300,62,"skyfall.beauty.studio",1],[400,46,"fora",0],[768,345,"nenamazana_",1],
+    [214,330,"np-branch",0]];
   const used = new Set(PINS.map(([x, y]) => x + "," + y));
   document.getElementById("map").innerHTML = `
     <polygon class="yard" points="${YARD}"/><text class="yard__t" x="560" y="440">двір · стилобат</text>
     <g style="filter: drop-shadow(0 6px 8px rgba(60,50,20,.22))">${SH.map((p) => `<polygon class="bld" points="${p}"/>`).join("")}</g>
-    ${[[1,176,640],[2,300,150],[3,610,108],[4,880,560]].map(([n,x,y]) => `<g class="badge" transform="translate(${x} ${y})"><circle r="24"/><text dy="9">${n}</text></g>`).join("")}
+    ${[[1,212,598],[2,300,150],[3,610,108],[4,880,560]].map(([n,x,y]) => `<g class="badge" transform="translate(${x} ${y})"><circle r="24"/><text dy="9">${n}</text></g>`).join("")}
     <text class="street" x="640" y="16">вул. Воскресенська</text>
     ${U.filter(([x, y]) => !used.has(x + "," + y)).map(([x, y, yd]) => `<circle class="${yd ? "u--yard" : "u--street"}" cx="${x}" cy="${y}" r="12"/>`).join("")}
-    ${PINS.map(([x, y, e, b]) => `<g class="pin" transform="translate(${x} ${y})"><circle r="32"/><text dy="11">${e}</text>${b ? '<text class="bolt" x="24" y="-18">🔋</text>' : ""}</g>`).join("")}`;
+    <defs><clipPath id="c"><circle r="30"/></clipPath></defs>
+    ${PINS.map(([x, y, f, b]) => `<g class="pin" transform="translate(${x} ${y})"><circle r="34"/><image href="../img/poruch/${f}.jpg" x="-30" y="-30" width="60" height="60" clip-path="url(#c)" preserveAspectRatio="xMidYMid slice"/>${b ? '<text class="bolt" x="28" y="-22">🔋</text>' : ""}</g>`).join("")}`;
 </script>
 </body>
 </html>
