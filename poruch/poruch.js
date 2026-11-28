@@ -29,7 +29,7 @@
   };
   const BADGES = [[1, 176, 640], [2, 300, 150], [3, 610, 108], [4, 880, 560]];
 
-  const CAT = { "Кава": "☕", "Їжа": "🍽", "Продукти": "🛒", "Краса": "💇", "Здоровʼя": "💊", "Здоров'я": "💊", "Діти": "🧸", "Спорт": "🏋️", "Послуги": "🛠", "Тварини": "🐾", "Інше": "📍" };
+  const CAT = { "Кава": "☕", "Їжа": "🍽", "Продукти": "🛒", "Краса": "💇", "Здоровʼя": "💊", "Здоров'я": "💊", "Діти": "🧸", "Спорт": "🏋️", "Послуги": "🛠", "Тварини": "🐾", "Пошта": "📦", "Інше": "📍" };
   const icon = (c) => CAT[c] || "📍";
 
   // ---------- Дані ----------
@@ -56,6 +56,18 @@
       return o;
     }).filter((o) => o.name && /^(так|yes|1|true|✅)/i.test(o.show));
   };
+  // Сервіси будинку — завжди на сторінці, не з таблиці. at — точка на карті (координати схеми забудови).
+  const NP = { cat: "Пошта", color: "#da291c", mono: "НП", service: true };
+  const LOCKER = (n, sec, at, where, note) => ({ ...NP, name: `Поштомат Нової пошти №${n}`, sec, at, where,
+    about: `${note} · до 20 кг`, hours: "цілодобово" });
+  const SERVICES = [
+    LOCKER(3226, 1, [196, 596], "Секція 1 · 1-й поверх, біля дверей на паркінг", "Тільки для мешканців"),
+    LOCKER(3227, 2, [282, 250], "Секція 2 · 1-й поверх, біля дверей на паркінг", "Тільки для мешканців"),
+    LOCKER(3228, 3, [668, 128], "Секція 3 · 2-й поверх, біля дверей на стилобат", "Для мешканців"),
+    LOCKER(3229, 4, [884, 470], "Секція 4 · 1-й поверх, біля дверей на паркінг", "Тільки для мешканців"),
+    { ...NP, name: "Нова пошта, відділення №436", unit: "2-4", where: "Секція 2 · вхід з вулиці, поруч із кав'ярнею",
+      about: "Поштове відділення · до 10 кг", hours: "Пн-Пт 08:00-21:00; Сб-Нд 08:00-19:00" },
+  ];
   const DEMO = [
     { name: "Кав'ярня «Ранок» (приклад)", cat: "Кава", unit: "2-6", about: "Кава, випічка, сніданки", hours: "Пн-Пт 7:30-21:00; Сб-Нд 9:00-20:00", phone: "+380670000000", ig: "example", noPower: "так", deal: "−10% на каву до 10:00 для мешканців ПО2", dealTill: "31.12.2026" },
     { name: "Мінімаркет «Біля дому» (приклад)", cat: "Продукти", unit: "4-3", about: "Продукти, побутова хімія, гаряча випічка", hours: "щодня 7:00-23:00", phone: "+380670000001", noPower: "так" },
@@ -138,6 +150,7 @@
   const tel = (v) => { const d = String(v).replace(/\D/g, ""); return d.length === 12 && d.startsWith("380") ? "+" + d : d.length === 10 && d.startsWith("0") ? "+38" + d : String(v).replace(/[^\d+]/g, ""); };
   const yes = (v) => /^(так|yes|1|true|✅|є)/i.test(v || "");
   const where = (p) => {
+    if (p.where) return p.where;
     const u = UNITS[p.unit];
     const sec = u ? u[0] : p.sec, side = u ? u[1] : p.side;
     return [sec ? `Секція ${sec}` : "", /двір/i.test(side) ? "вхід з двору" : /вулиц/i.test(side) ? "вхід з вулиці" : ""].filter(Boolean).join(" · ");
@@ -153,7 +166,7 @@
       const side = /двір/i.test(p.side) ? "Двір" : "Вулиця";
       u = Object.values(UNITS).find((x) => String(x[0]) === String(p.sec) && x[1] === side);
     }
-    p.xy = u ? [u[2], u[3]] : null;
+    p.xy = p.at || (u ? [u[2], u[3]] : null);
     return p;
   };
 
@@ -190,7 +203,7 @@
 
   const card = (p) => `
     <article class="pr-card${match(p) ? "" : " hide"}" id="p${p.i}" data-i="${p.i}">
-      <div class="pr-card__pic" style="--tile:${tile(p.name)}"><span class="pr-mono">${esc(mono(p.name))}</span><i class="pr-cat" title="${esc(p.cat || "")}">${icon(p.cat)}</i>${pic(p) ? `<img src="${esc(pic(p))}" alt="" loading="lazy" onerror="this.remove()">` : ""}</div>
+      <div class="pr-card__pic" style="--tile:${p.color || tile(p.name)}"><span class="pr-mono">${esc(p.mono || mono(p.name))}</span><i class="pr-cat" title="${esc(p.cat || "")}">${icon(p.cat)}</i>${pic(p) ? `<img src="${esc(pic(p))}" alt="" loading="lazy" onerror="this.remove()">` : ""}</div>
       <div class="pr-card__body">
         <h3>${esc(p.name)}</h3>
         <p class="pr-card__meta">${esc([p.cat, where(p)].filter(Boolean).join(" · "))}</p>
@@ -213,7 +226,7 @@
       $("#list").innerHTML = `<div class="card pr-empty"><b>Заклади додаються</b><p>Збираємо інформацію про кав'ярні, магазини й сервіси в нашому ЖК. Точки на карті — 30 комерційних приміщень ЖК: зелені виходять у двір, білі — на вулицю.</p></div>`;
       return;
     }
-    const sorted = places.slice().sort((a, b) => (b.st?.open ? 1 : 0) - (a.st?.open ? 1 : 0) || (b.dealOn ? 1 : 0) - (a.dealOn ? 1 : 0));
+    const sorted = places.slice().sort((a, b) => (a.service ? 1 : 0) - (b.service ? 1 : 0) || (b.st?.open ? 1 : 0) - (a.st?.open ? 1 : 0) || (b.dealOn ? 1 : 0) - (a.dealOn ? 1 : 0));
     const shown = sorted.filter(match).length;
     $("#list").innerHTML = sorted.map(card).join("") + (shown ? "" : `<p class="pr-none">Нічого не знайшли за цим фільтром.</p>`);
   };
@@ -253,7 +266,7 @@
   });
   document.addEventListener("keydown", (e) => { const pin = e.target.closest?.(".pin"); if (pin && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); focus(+pin.dataset.i); } });
 
-  const start = (list, note) => { places = list.map(enrich); draw(); $("#src").textContent = note; };
+  const start = (list, note) => { places = list.concat(SERVICES.map((o) => ({ ...o }))).map(enrich); draw(); $("#src").textContent = note; };
   draw();
   if (demo) start(DEMO.slice(), "Режим прикладу: заклади вигадані, щоб показати, як виглядатиме сторінка.");
   else if (S.poruchUrl) {
@@ -264,7 +277,7 @@
     fetch(S.poruchCsv, { cache: "no-store" }).then((r) => (r.ok ? r.text() : Promise.reject()))
       .then((t) => start(toPlaces(parseCsv(t)), "Дані надають самі заклади."))
       .catch(() => start([], ""));
-  }
+  } else start([], "");
   setInterval(() => places.length && draw(), 60e3); // «відкрито / зачинено» оновлюється щохвилини
 
   // ---------- Форма «Додати заклад» → Apps Script таблиці (у «Заклади» з «Показувати = ні») ----------
